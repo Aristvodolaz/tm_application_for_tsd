@@ -2,10 +2,14 @@ package com.application.tm_application_for_tsd.utils
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import com.symbol.emdk.EMDKManager
 import com.symbol.emdk.EMDKResults
-import com.symbol.emdk.barcode.*
+import com.symbol.emdk.barcode.BarcodeManager
+import com.symbol.emdk.barcode.ScanDataCollection
+import com.symbol.emdk.barcode.Scanner
+import com.symbol.emdk.barcode.ScannerException
+import com.symbol.emdk.barcode.StatusData
+import com.symbol.emdk.barcode.ScannerResults
 
 class ScannerController(
     context: Context,
@@ -17,19 +21,22 @@ class ScannerController(
     private var emdkManager: EMDKManager? = null
     private var barcodeManager: BarcodeManager? = null
     private var scanner: Scanner? = null
-    private val appContext = context.applicationContext
     private var isScannerInitialized = false
 
     init {
-        val results = EMDKManager.getEMDKManager(appContext, this)
-        if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
-            Log.e(TAG, "Failed to initialize EMDKManager: ${results.statusCode}")
-            Toast.makeText(appContext, "Error initializing EMDK: ${results.statusCode}", Toast.LENGTH_SHORT).show()
+        initializeEMDK(context)
+    }
+
+    private fun initializeEMDK(context: Context) {
+        val result = EMDKManager.getEMDKManager(context, this)
+        if (result.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
+            Log.e(TAG, "Ошибка инициализации EMDK: ${result.statusCode}")
+            callback.onScanFailed("Ошибка инициализации EMDK.")
         }
     }
 
-    override fun onOpened(emdkManager: EMDKManager?) {
-        this.emdkManager = emdkManager
+    override fun onOpened(manager: EMDKManager?) {
+        emdkManager = manager
         initBarcodeManager()
         initializeScanner()
     }
@@ -42,37 +49,27 @@ class ScannerController(
 
     private fun initBarcodeManager() {
         barcodeManager = emdkManager?.getInstance(EMDKManager.FEATURE_TYPE.BARCODE) as? BarcodeManager
-        if (barcodeManager != null) {
-            Log.d(TAG, "BarcodeManager initialized.")
-        } else {
-            Log.e(TAG, "Failed to initialize BarcodeManager.")
-            Toast.makeText(appContext, "Error initializing BarcodeManager", Toast.LENGTH_SHORT).show()
+        if (barcodeManager == null) {
+            callback.onScanFailed("Ошибка инициализации BarcodeManager.")
         }
     }
 
     private fun initializeScanner() {
-        if (barcodeManager != null && !isScannerInitialized) {
-            try {
-                scanner = barcodeManager?.getDevice(BarcodeManager.DeviceIdentifier.DEFAULT)
-                scanner?.apply {
-                    addDataListener(this@ScannerController)
-                    addStatusListener(this@ScannerController)
-                    triggerType = Scanner.TriggerType.HARD
-                    enable()
-                    configureScanner()
-                    isScannerInitialized = true
-                    Log.d(TAG, "Scanner initialized and enabled.")
-                } ?: run {
-                    Log.e(TAG, "Scanner is null.")
-                    Toast.makeText(appContext, "Scanner is null.", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: ScannerException) {
-                Log.e(TAG, "Error enabling scanner: ${e.message}", e)
-                Toast.makeText(appContext, "Error enabling scanner: ${e.message}", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Log.e(TAG, "Unexpected error: ${e.message}", e)
-                Toast.makeText(appContext, "Unexpected error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        scanner?.triggerType = Scanner.TriggerType.HARD
+
+        try {
+            scanner = barcodeManager?.getDevice(BarcodeManager.DeviceIdentifier.DEFAULT)
+            scanner?.apply {
+                addDataListener(this@ScannerController)
+                addStatusListener(this@ScannerController)
+                triggerType = Scanner.TriggerType.HARD
+                enable()
+                configureScanner()
+                isScannerInitialized = true
+                Log.d(TAG, "Сканер успешно инициализирован.")
+            } ?: callback.onScanFailed("Сканер не найден.")
+        } catch (e: ScannerException) {
+            callback.onScanFailed("Ошибка инициализации сканера: ${e.message}")
         }
     }
 
@@ -83,93 +80,94 @@ class ScannerController(
             config.decoderParams.apply {
                 ean13.enabled = true
                 code128.enabled = true
-                code128.length1 = 1
-                code128.length2 = 100
                 code39.enabled = true
-                code39.length1 = 1
-                code39.length2 = 100
                 upca.enabled = true
             }
 
             scanner?.config = config
-            Log.d(TAG, "Scanner configured for barcodes with length from 1 to 100.")
+            Log.d(TAG, "Сканер настроен.")
         } catch (e: ScannerException) {
-            Log.e(TAG, "Error configuring scanner: ${e.message}")
+            Log.e(TAG, "Ошибка конфигурации сканера: ${e.message}")
         }
     }
 
-    fun isScannerActive(): Boolean {
-        return scanner?.isEnabled ?: false
+
+    fun startScanning() {
+        if (!isScannerInitialized) {
+            Log.e(TAG, "Сканер не инициализирован.")
+            callback.onScanFailed("Сканер не инициализирован.")
+            return
+        }
+        try {
+            scanner?.read()
+            Log.d(TAG, "Сканирование запущено.")
+        } catch (e: ScannerException) {
+            Log.e(TAG, "Ошибка запуска сканирования: ${e.message}")
+            callback.onScanFailed("Ошибка запуска сканирования: ${e.message}")
+        }
+    }
+    fun resumeScanner() {
+        if (!isScannerInitialized) {
+            initializeScanner()
+        } else {
+            startScanning()
+        }
+    }
+
+    fun stopScanning() {
+        try {
+            scanner?.cancelRead()
+            Log.d(TAG, "Сканирование остановлено.")
+        } catch (e: ScannerException) {
+            callback.onScanFailed("Ошибка остановки сканирования: ${e.message}")
+        }
     }
 
     fun releaseScanner() {
-        scanner?.let {
-            try {
-                it.disable()
-                isScannerInitialized = false
-                Log.d(TAG, "Scanner disabled.")
-            } catch (e: ScannerException) {
-                Log.e(TAG, "Error disabling scanner: ${e.message}")
-                Toast.makeText(appContext, "Error disabling scanner: ${e.message}", Toast.LENGTH_SHORT).show()
+        try {
+            scanner?.apply {
+                removeDataListener(this@ScannerController)
+                removeStatusListener(this@ScannerController)
+                disable()
             }
-            it.removeDataListener(this)
-            it.removeStatusListener(this)
             scanner = null
+            isScannerInitialized = false
+        } catch (e: ScannerException) {
+            Log.e(TAG, "Ошибка отключения сканера: ${e.message}")
         }
     }
 
     override fun onData(scanDataCollection: ScanDataCollection?) {
         if (scanDataCollection?.result == ScannerResults.SUCCESS) {
-            scanDataCollection.scanData.forEach { data ->
-                val barcodeData = data.data
-                callback.onDataReceived(barcodeData)
+            scanDataCollection.scanData.forEach {
+                callback.onDataReceived(it.data)
             }
         } else {
-            callback.onScanFailed("Failed to read barcode.")
+            callback.onScanFailed("Не удалось считать штрих-код.")
         }
     }
 
     override fun onStatus(statusData: StatusData?) {
         when (statusData?.state) {
             StatusData.ScannerStates.IDLE -> {
-                Log.d(TAG, "Scanner is idle. Ready to scan.")
-                startScanning()
+                Log.d(TAG, "Сканер готов. Запускаем сканирование.")
+                try {
+                    scanner?.read()
+                } catch (e: ScannerException) {
+                    Log.e(TAG, "Ошибка запуска сканирования в IDLE: ${e.message}")
+                    callback.onScanFailed("Ошибка запуска сканирования: ${e.message}")
+                }
             }
-            StatusData.ScannerStates.WAITING -> {
-                Log.d(TAG, "Scanner is waiting for trigger.")
-            }
-            StatusData.ScannerStates.SCANNING -> {
-                Log.d(TAG, "Scanner is scanning.")
-            }
-            StatusData.ScannerStates.DISABLED -> {
-                Log.d(TAG, "Scanner is disabled.")
-            }
+            StatusData.ScannerStates.SCANNING -> Log.d(TAG, "Сканирование идет.")
+            StatusData.ScannerStates.DISABLED -> Log.d(TAG, "Сканер отключен.")
             StatusData.ScannerStates.ERROR -> {
-                Log.e(TAG, "Scanner error: ${statusData.state.name}")
-                callback.onScanFailed("Scanner error occurred.")
+                Log.e(TAG, "Ошибка сканера.")
+                callback.onScanFailed("Ошибка сканера.")
             }
-
-            null -> TODO()
+            else -> Log.d(TAG, "Неизвестное состояние сканера: ${statusData?.state}")
         }
     }
 
-    fun startScanning() {
-        try {
-            scanner?.read()
-            Log.d(TAG, "Scanner started scanning.")
-        } catch (e: ScannerException) {
-            Log.e(TAG, "Error starting scan: ${e.message}")
-            callback.onScanFailed("Error starting scan.")
-        }
-    }
-
-    fun resumeScanner() {
-        if (scanner != null) {
-            startScanning()
-        } else {
-            initializeScanner()
-        }
-    }
 
     interface ScannerCallback {
         fun onDataReceived(barcodeData: String)

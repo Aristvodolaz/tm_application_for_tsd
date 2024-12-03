@@ -7,6 +7,6 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface Api {
-    @POST("api/tm/validateBox")
+    @POST("/api/tm/validateBox")
     suspend fun checkValidateBox(@Body barcodeData: ValidateBoxRequest): Response<ValidateBoxResponse>
 }

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Tm_application_for_tsd" parent="android:Theme.Material.Light.NoActionBar" />
+        <style name="Theme.Tm_application_for_tsd" parent="Theme.Material3.DayNight.NoActionBar">
+            <item name="colorPrimary">#ffffff</item>
+            <item name="colorPrimaryDark">#E6E5E5</item>
+            <item name="colorAccent">#F31616</item>
+        </style>
+
 </resources>

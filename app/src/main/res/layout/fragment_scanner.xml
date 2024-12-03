@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@color/background_light">
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:text="Выберите тип сканирования"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/primary_dark"
+        android:gravity="center"
+        android:padding="8dp" />
+
+    <!-- Кнопка сканирования короб -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/scanButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_button"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Отсканировать короб"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:textAllCaps="false" />
+
+    <!-- Кнопка сканирования ЗНД -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/scanZNDButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Отсканировать ЗНД"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:textAllCaps="false" />
+
+</LinearLayout>

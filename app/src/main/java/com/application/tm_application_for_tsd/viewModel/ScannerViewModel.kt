@@ -42,13 +42,6 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    fun startScanning() {
-        scannerController.resumeScanner()
-    }
-
-    fun stopScanning() {
-        scannerController.releaseScanner()
-    }
 
     fun checkValidateBox(sscc: String, pallet: String) {
         viewModelScope.launch {
@@ -57,12 +50,28 @@ class ScannerViewModel @Inject constructor(
                 val response = repository.checkValidateBox(sscc, pallet)
                 _apiResponse.postValue(response)
             } catch (e: Exception) {
-                _error.postValue(e.message)
+                _error.postValue("Ошибка проверки коробки: ${e.localizedMessage}")
             } finally {
                 _loading.postValue(false)
             }
         }
     }
+    fun startScanning() {
+        try {
+            scannerController.startScanning()
+        } catch (e: Exception) {
+            _error.postValue("Ошибка запуска сканирования: ${e.localizedMessage}")
+        }
+    }
+
+    fun stopScanning() {
+        try {
+            scannerController.releaseScanner()
+        } catch (e: Exception) {
+            _error.postValue("Ошибка остановки сканирования: ${e.localizedMessage}")
+        }
+    }
+
 
     override fun onCleared() {
         super.onCleared()
