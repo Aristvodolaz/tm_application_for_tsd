@@ -6,48 +6,55 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AllInbox
+import androidx.compose.material.icons.filled.ChecklistRtl
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.tm_application_for_tsd.screen.AuthScreen
+import com.application.tm_application_for_tsd.screen.TaskScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
+import com.application.tm_application_for_tsd.viewModel.AuthViewModel
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 import javax.inject.Inject
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    val scannerViewModel: ScannerViewModel by viewModels()
+
     @Inject
     lateinit var dataWedgeManager: DataWedgeManager
+    val scannerViewModel: ScannerViewModel by viewModels()
+    val authViewModel: AuthViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Теперь Hilt автоматически инжектирует dataWedgeManager
+        // Настройка DataWedge
         dataWedgeManager.createAndConfigureProfile(
             profileName = "MyDataWedgeProfile",
             packageName = packageName,
@@ -56,136 +63,136 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            NavigationGraph(navController = navController, scannerViewModel = scannerViewModel)
+            TSDApplication(navController, scannerViewModel, authViewModel)
         }
-
-        // Регистрируем BroadcastReceiver
-        val intentFilter = IntentFilter()
-        intentFilter.addAction("com.symbol.datawedge.api.RESULT_ACTION")
+        // Регистрация BroadcastReceiver
+        val intentFilter = IntentFilter("com.symbol.datawedge.api.RESULT_ACTION")
         registerReceiver(scanReceiver, intentFilter)
     }
 
-
     private val scanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if ("com.symbol.datawedge.api.RESULT_ACTION" == intent.action) {
-                val scannedData = intent.getStringExtra("com.symbol.datawedge.data_string")
-                val error = intent.getStringExtra("com.symbol.datawedge.result")
-
-                Log.d("ScanReceiver", "Intent received: $intent")
-                Log.d("ScanReceiver", "Scanned Data: $scannedData")
-                Log.d("ScanReceiver", "Error: $error")
-
-                if (!scannedData.isNullOrEmpty()) {
-                    Log.d("ScanReceiver", "Sending data to ViewModel: $scannedData")
-                    scannerViewModel.onBarcodeScanned(scannedData)
-                } else if (!error.isNullOrEmpty()) {
-                    Log.d("ScanReceiver", "Sending error to ViewModel: $error")
-                    scannerViewModel.onScanError(error)
-                }
+            val scannedData = intent.getStringExtra("com.symbol.datawedge.data_string")
+            if (!scannedData.isNullOrEmpty()) {
+                scannerViewModel.onBarcodeScanned(scannedData)
             }
         }
     }
-
-
-
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(scanReceiver)
     }
 }
-//
-//@Composable
-//fun AppWithBottomNavigation() {
-//    val navController = rememberNavController()
-//    val items = listOf(
-//        BottomNavItem(
-//            route = "scanner",
-//            icon = Icons.Filled.Home, // Material Design Home icon
-//            label = "Сортировка"
-//        ),
-//        BottomNavItem(
-//            route = "list_for_pallet",
-//            icon = Icons.Filled.List, // Material Design List icon
-//            label = "Список"
-//        ),
-//        BottomNavItem(
-//            route = "settings",
-//            icon = Icons.Filled.Settings, // Material Design Settings icon
-//            label = "Настройки"
-//        )
-//    )
-//
-//    Scaffold(
-//        bottomBar = {
-//            if (navController.currentBackStackEntry?.destination?.route != "auth") {
-//                BottomNavigationBar(navController, items)
-//            }
-//        }
-//    ) { innerPadding ->
-//        Box(modifier = Modifier.padding(innerPadding)) {
-//            NavigationGraph(navController)
-//        }
-//    }
-//}
-
 @Composable
-fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavItem>) {
-    NavigationBar(   containerColor = Color(0xFFE1E1E1), // Adjust background color
-        tonalElevation = 4.dp, // Optional, gives elevation effect
-        modifier = Modifier.height(56.dp)) {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        launchSingleTop = true
+fun TSDApplication(
+    navController: NavHostController,
+    scannerViewModel: ScannerViewModel,
+    authViewModel: AuthViewModel
+) {
+    val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
+    val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsState(null)
+    val currentDestination = currentBackStackEntry?.destination?.route ?: "auth"
+    var showBottomBar by remember { mutableStateOf(false) } // Состояние для показа нижнего меню
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) { // Показываем меню только если разрешено
+                BottomNavigationBar(
+                    currentDestination = currentDestination,
+                    onNavigateToScanner = { navController.navigate("obrabotka") },
+                    onNavigateToList = { navController.navigate("upakovka") },
+                    onNavigateToSettings = { navController.navigate("redactor") },
+                    onNavigateToInfo = { navController.navigate("info") }
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = if (isAuthenticated) "task" else "auth",
+            Modifier.padding(innerPadding)
+        ) {
+            composable("auth") {
+                AuthScreen(
+                    navController = navController,
+                    scannerViewModel = scannerViewModel,
+                    authViewModel = authViewModel
+                )
+            }
+            composable("task") {
+                TaskScreen(
+                    onTaskSelected = {
+                        showBottomBar = true // Включаем нижнее меню после выбора задания
+                        navController.navigate("obrabotka") // Переход на главный экран
                     }
-                },
-                icon = {
-                    Icon(
-                        item.icon,
-                        contentDescription = item.label,
-                        modifier = Modifier.size(24.dp) // Adjust icon size
-                    )
-                },
-                label = {
-                    Text(
-                        item.label,
-                        style = MaterialTheme.typography.bodySmall, // Smaller text style
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center // Center align text
-                    )
-                },
-                alwaysShowLabel = true // Ensures label is always visible
-            )
+                )
+            }
+            composable("obrabotka") {
+                Text("Экран обработки задания")
+            }
+            composable("upakovka") {
+                Text("Экран списка для паллет")
+            }
+            composable("redactor") {
+                Text("Экран настроек")
+            }
+            composable("info") {
+                Text("Экран информации")
+            }
         }
     }
 }
+
+
+
 
 @Composable
-fun NavigationGraph(navController: NavHostController, scannerViewModel: ScannerViewModel) {
-    NavHost(navController, startDestination = "auth") {
-        composable("auth") {
-            Log.d("NavigationGraph", "Navigating to AuthScreen")
+fun BottomNavigationBar(
+    currentDestination: String,
+    onNavigateToScanner: () -> Unit,
+    onNavigateToList: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToInfo: () -> Unit
 
-            AuthScreen(
-                navController = navController,
-                scannerViewModel = scannerViewModel,
-                authViewModel = hiltViewModel()
+) {
+    NavigationBar(
+        containerColor = Color.LightGray,
+        contentColor = Color.White,
+        modifier = Modifier.height(56.dp)
+    ) {
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.ChecklistRtl, contentDescription = "obrabotka") },
+            selected = currentDestination == "obrabotka",
+            onClick = onNavigateToScanner,
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color.White, // Цвет выделенного фона
             )
-        }
 
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.AllInbox, contentDescription = "upakovka") },
+            selected = currentDestination == "upakovka",
+            onClick = onNavigateToList,
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color.White, // Цвет выделенного фона
+            )
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.EditNote, contentDescription = "redactor") },
+            selected = currentDestination == "redactor",
+            onClick = onNavigateToSettings,
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color.White, // Цвет выделенного фона
+            )
+        )
+
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.Info, contentDescription = "info") },
+            selected = currentDestination == "info",
+            onClick = onNavigateToInfo,
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color.White, // Цвет выделенного фона
+            )
+        )
     }
-}
-
-data class BottomNavItem(
-    val route: String,
-    val icon: ImageVector,
-    val label: String
-)
-
-fun sampleBoxes(): List<String> {
-    return listOf("Box 1", "Box 2", "Box 3", "Box 4", "Box 5")
 }
