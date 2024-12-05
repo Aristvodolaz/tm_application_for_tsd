@@ -2,7 +2,7 @@ package com.application.tm_application_for_tsd.di
 
 import android.content.Context
 import android.util.Log
-import com.application.tm_application_for_tsd.utils.ScannerController
+import com.application.tm_application_for_tsd.utils.DataWedgeManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,17 +15,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideScannerController(
+    fun provideDataWedgeManager(
         @ApplicationContext context: Context
-    ): ScannerController {
-        return ScannerController(context, object : ScannerController.ScannerCallback {
-            override fun onDataReceived(barcodeData: String) {
-                Log.d("ScannerCallback", "Штрих-код получен: $barcodeData")
-            }
-
-            override fun onScanFailed(errorMessage: String) {
-                Log.e("ScannerCallback", "Ошибка сканера: $errorMessage")
-            }
-        })
+    ): DataWedgeManager {
+        return DataWedgeManager(context)
     }
 }

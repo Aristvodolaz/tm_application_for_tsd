@@ -1,7 +1,6 @@
-package com.application.tm_application_for_tsd.screen
+package com.application.tm_application_for_tsd.screen.old
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +37,7 @@ class ScanTypeFragment : Fragment() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        scannerViewModel.startScanning() // Запуск сканирования автоматически при старте фрагмента
-    }
+
 }
 
 @Composable

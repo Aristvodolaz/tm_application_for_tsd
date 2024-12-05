@@ -13,6 +13,7 @@ hilt = "2.47"  # Обновите на самую последнюю верси�
 runtimeLivedata = "1.7.5"
 hiltCompilerVersion = "2.48"
 appcompat = "1.7.0"
+runtimeLivedataVersion = "1.7.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltCompilerVersion" }
 dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompilerVersion" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedataVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

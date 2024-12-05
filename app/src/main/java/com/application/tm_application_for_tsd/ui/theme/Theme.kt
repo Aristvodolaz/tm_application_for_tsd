@@ -11,16 +11,26 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+
+private val LightColors = lightColorScheme(
+    primary = RedPrimary,
+    onPrimary = White,
+    secondary = GrayPrimary,
+    onSecondary = White,
+    background = LightGray,
+    surface = White,
+    onSurface = DarkGray
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val DarkColors = darkColorScheme(
+    primary = RedPrimary,
+    onPrimary = White,
+    secondary = DarkGray,
+    onSecondary = White,
+    background = DarkGray,
+    surface = GrayPrimary,
+    onSurface = White
+)
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -28,10 +38,9 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
+
     onSurface = Color(0xFF1C1B1F),
     */
-)
 
 @Composable
 fun Tm_application_for_tsdTheme(
@@ -46,8 +55,8 @@ fun Tm_application_for_tsdTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
