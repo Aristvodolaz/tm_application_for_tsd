@@ -27,7 +27,7 @@ object ApiModule {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl("http://31.128.44.48/")
+            .baseUrl("https://corrywilliams.ru/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

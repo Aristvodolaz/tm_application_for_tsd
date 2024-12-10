@@ -31,14 +31,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.application.tm_application_for_tsd.screen.AuthScreen
 import com.application.tm_application_for_tsd.screen.TaskScreen
+import com.application.tm_application_for_tsd.screen.navigation.ObraborkaScreen
+import com.application.tm_application_for_tsd.screen.navigation.PalletScreen
+import com.application.tm_application_for_tsd.screen.navigation.RedactorScreen
+import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
+import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.AuthViewModel
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 import javax.inject.Inject
@@ -49,10 +56,12 @@ class MainActivity : ComponentActivity() {
     lateinit var dataWedgeManager: DataWedgeManager
     val scannerViewModel: ScannerViewModel by viewModels()
     val authViewModel: AuthViewModel by viewModels()
-
+    @Inject
+    lateinit var spHelper: SPHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         // Настройка DataWedge
         dataWedgeManager.createAndConfigureProfile(
@@ -63,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            TSDApplication(navController, scannerViewModel, authViewModel)
+            TSDApplication(navController, scannerViewModel, authViewModel, spHelper)
         }
         // Регистрация BroadcastReceiver
         val intentFilter = IntentFilter("com.symbol.datawedge.api.RESULT_ACTION")
@@ -87,7 +96,8 @@ class MainActivity : ComponentActivity() {
 fun TSDApplication(
     navController: NavHostController,
     scannerViewModel: ScannerViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    spHelper: SPHelper
 ) {
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsState(null)
@@ -121,23 +131,30 @@ fun TSDApplication(
             }
             composable("task") {
                 TaskScreen(
-                    onTaskSelected = {
-                        showBottomBar = true // Включаем нижнее меню после выбора задания
-                        navController.navigate("obrabotka") // Переход на главный экран
-                    }
+                    onNavigateToObrabotka = { taskName ->
+                        navController.navigate("obrabotka")
+                        showBottomBar = true
+                    },
+                    spHelper = spHelper // Передаем SPHelper
                 )
             }
-            composable("obrabotka") {
-                Text("Экран обработки задания")
+            composable(
+                route = "obrabotka",
+            ) {
+                spHelper.getTaskName()
+                    ?.let { it1 -> ObraborkaScreen(taskName = it1, scannerViewModel = scannerViewModel) }
             }
+
+
             composable("upakovka") {
-                Text("Экран списка для паллет")
+                spHelper.getTaskName()
+                    ?.let { it1 -> UpakovkaScreen(taskName = it1, scannerViewModel = scannerViewModel) }
             }
             composable("redactor") {
-                Text("Экран настроек")
+                spHelper.getTaskName()?.let { RedactorScreen(taskName = spHelper.getTaskName()!!, scannerViewModel = scannerViewModel) } // Передаем SPHelper
             }
             composable("info") {
-                Text("Экран информации")
+                spHelper.getTaskName()?.let { PalletScreen(taskName = spHelper.getTaskName()!!) } // Передаем SPHelper
             }
         }
     }

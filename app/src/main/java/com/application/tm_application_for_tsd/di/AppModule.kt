@@ -3,6 +3,7 @@ package com.application.tm_application_for_tsd.di
 import android.content.Context
 import android.util.Log
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
+import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,5 +20,11 @@ object AppModule {
         @ApplicationContext context: Context
     ): DataWedgeManager {
         return DataWedgeManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSPHelper(@ApplicationContext context: Context): SPHelper {
+        return SPHelper(context)
     }
 }
