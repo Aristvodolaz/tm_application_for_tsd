@@ -42,6 +42,7 @@ import com.application.tm_application_for_tsd.screen.navigation.ObraborkaScreen
 import com.application.tm_application_for_tsd.screen.navigation.PalletScreen
 import com.application.tm_application_for_tsd.screen.navigation.RedactorScreen
 import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
+import com.application.tm_application_for_tsd.screen.obrabotka.InfoArticleScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
@@ -141,9 +142,28 @@ fun TSDApplication(
             composable(
                 route = "obrabotka",
             ) {
-                spHelper.getTaskName()
-                    ?.let { it1 -> ObraborkaScreen(taskName = it1, scannerViewModel = scannerViewModel) }
+                spHelper.getTaskName()?.let { taskName ->
+                    ObraborkaScreen(
+                        taskName = taskName,
+                        scannerViewModel = scannerViewModel,
+                        onArticleClick = { article ->
+                            spHelper.setArticuleWork(article.artikul.toString())
+                            spHelper.setShkWork(article.shk.toString())
+                            spHelper.setNameStuffWork(article.nazvanieTovara.toString())
+                            navController.navigate("info_article_screen/${article.artikul}")
+                        }
+                    )
+                }
             }
+
+            composable(
+                route = "info_article_screen/{artikul}",
+                arguments = listOf(navArgument("artikul") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val artikul = backStackEntry.arguments?.getString("artikul")
+                InfoArticleScreen(spHelper = spHelper)
+            }
+
 
 
             composable("upakovka") {

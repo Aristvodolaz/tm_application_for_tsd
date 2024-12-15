@@ -1,6 +1,5 @@
 package com.application.tm_application_for_tsd.viewModel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
@@ -81,4 +80,15 @@ class TaskViewModel @Inject constructor(
         _selectedSklad.value = sklad
         fetchTasks(sklad.pref) // Загружаем задания для выбранного склада
     }
+
+    fun deleteArticle(id: Long?) {
+        viewModelScope.launch {
+            try {
+//                api.deleteArticle(articleId) // Ваш API для удаления
+            } catch (e: Exception) {
+                // Обработать ошибку
+            }
+        }
+    }
+
 }

@@ -1,174 +1,106 @@
 package com.application.tm_application_for_tsd.viewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
+import com.application.tm_application_for_tsd.network.request_response.SrokGodnosti
 import com.application.tm_application_for_tsd.network.request_response.Status
 import com.application.tm_application_for_tsd.utils.SPHelper
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-class InfoArticleViewModel(
-    private val api: Api
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+@HiltViewModel
+class InfoArticleViewModel @Inject constructor(
+    private val api: Api,
+    private val spHelper: SPHelper
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(InfoArticleState())
-    val state: StateFlow<InfoArticleState> = _state
+    val state: StateFlow<InfoArticleState> get() = _state
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun changeStatusTask(article: String, status: Int) {
         viewModelScope.launch {
+            updateState(isLoading = true)
             try {
-                _state.value = _state.value.copy(isLoading = true)
-                val response = api.changeStatus(Status(SPHelper.getNameTask(), article, status, SPHelper.getNameEmployer()))
-                if (response.isSuccess) {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        successMessage = "Артикул взят в работу",
+                val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
+                val taskName = spHelper.getTaskName() ?: throw IllegalStateException("Task name not found")
+                val response = api.changeStatus(Status(taskName, article,
+                   currentDateTime, status, spHelper.getNameEmployer()!!
+                ))
+                if (response.success) {
+                    updateState(
+                        successMessage = "Артикул успешно взят в работу",
                         taskStatus = TaskStatus.IN_PROGRESS
                     )
                 } else {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Статус задания не изменен, повторите попытку сканирования"
-                    )
+                    updateState(errorMessage = "Не удалось изменить статус задания. Попробуйте снова.")
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Ошибка соединения: ${e.localizedMessage}"
-                )
+                updateState(errorMessage = "Ошибка соединения: ${e.localizedMessage}")
             }
         }
-    }
-
-    fun setInSharedPref(shk: String, article: String, name: String) {
-        SPHelper.setShkWork(shk)
-        SPHelper.setArticuleWork(article)
-        SPHelper.setNameStuffWork(name)
     }
 
     fun findInExcel(shk: String, name: String) {
         viewModelScope.launch {
+            updateState(isLoading = true)
             try {
-                _state.value = _state.value.copy(isLoading = true)
-                val response = api.findShkInExcel(name, shk)
-                if (response.isSuccess) {
-                    val articul = response.articuls[0]
-                    setInSharedPref(articul.shk, articul.artikul.toString(), articul.nazvanieTovara)
-                    updateShk(shk)
+                val response = api.getShk(name, shk)
+                if (response.success && response.articuls.isNotEmpty()) {
+                    val articul = response.articuls.first()
+                    articul.shk?.let { spHelper.setShkWork(it) }
+                    spHelper.setArticuleWork(articul.artikul.toString())
+                    articul.nazvanieTovara?.let { spHelper.setNameStuffWork(it) }
+                    updateState(successMessage = "Товар найден: ${articul.nazvanieTovara}")
                 } else {
-                    searchArticleInDb(SPHelper.getArticuleWork())
+                    searchArticleInDb(spHelper.getArticuleWork())
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Ошибка: ${e.localizedMessage}"
-                )
+                updateState(errorMessage = "Ошибка: ${e.localizedMessage}")
             }
         }
     }
 
-    fun searchArticleInDb(article: String) {
+    private fun searchArticleInDb(article: String?) {
         viewModelScope.launch {
             try {
-                val response =api.findShkInDBWithArticule(article)
-                if (response.isSuccess && response.value != null) {
-                    val shk = response.value[0].shk
-                    if (shk.isNullOrBlank()) {
-                        _state.value = _state.value.copy(newShk = SPHelper.getShkWork())
-                    } else {
-                        SPHelper.setShkWork(shk)
-                        updateShk(shk)
-                    }
+                val response = article?.let { api.getArticulTask(spHelper.getTaskName() ?: "", it) }
+                if (response != null && response.success && response.articuls.isEmpty()) {
+                    val shk = response.articuls.first().shk.orEmpty()
+                    spHelper.setShkWork(shk)
+                    updateState(successMessage = "Штрихкод найден: $shk")
                 } else {
-                    _state.value = _state.value.copy(newShk = SPHelper.getShkWork())
+                    updateState(errorMessage = "Артикул не найден в базе данных.")
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(errorMessage = "Ошибка: ${e.localizedMessage}")
+                updateState(errorMessage = "Ошибка: ${e.localizedMessage}")
             }
         }
     }
 
-    fun updateShk(shk: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
-                val response = model.updateShk(shk)
-                if (response.isSuccess) {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        successMessage = "ШК успешно обновлён"
-                    )
-                } else {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Ошибка обновления ШК, попробуйте позже"
-                    )
-                }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Ошибка соединения: ${e.localizedMessage}"
-                )
-            }
-        }
-    }
-
-    fun sendSrokGodnosti(date: String, persent: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
-                val response = taskModel.sendSrokGodnosti(date, persent)
-                if (response.isSuccess) {
-                    if (SPHelper.getPrefics() == "WB") {
-                        sendWBSrok(date)
-                    } else {
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            successMessage = "Срок годности успешно записан"
-                        )
-                    }
-                } else {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Ошибка записи срока годности"
-                    )
-                }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Ошибка соединения: ${e.localizedMessage}"
-                )
-            }
-        }
-    }
-
-    private suspend fun sendWBSrok(date: String) {
-        withContext(Dispatchers.IO) {
-            taskModel.addSrokForWB(date)
-        }
+    private fun updateState(
+        isLoading: Boolean = false,
+        taskStatus: TaskStatus? = null,
+        errorMessage: String? = null,
+        successMessage: String? = null,
+        newShk: String? = null
+    ) {
         _state.value = _state.value.copy(
-            isLoading = false,
-            successMessage = "Срок годности успешно записан"
+            isLoading = isLoading,
+            taskStatus = taskStatus ?: _state.value.taskStatus,
+            errorMessage = errorMessage,
+            successMessage = successMessage,
+            newShk = newShk
         )
-    }
-
-    fun cancelTask(reason: String, comment: String) {
-        viewModelScope.launch {
-            try {
-                val response = taskModel.calncelTask(reason, comment)
-                if (response.isSuccess) {
-                    _state.value = _state.value.copy(successMessage = "Задача успешно отменена")
-                } else {
-                    _state.value = _state.value.copy(errorMessage = "Ошибка отмены задачи")
-                }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(errorMessage = "Ошибка соединения: ${e.localizedMessage}")
-            }
-        }
     }
 }
 

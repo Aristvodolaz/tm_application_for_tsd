@@ -3,7 +3,9 @@ package com.application.tm_application_for_tsd.screen.navigation
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -39,7 +42,8 @@ import com.application.tm_application_for_tsd.viewModel.TaskViewModel
 fun ObraborkaScreen(
     taskName: String,
     viewModel: TaskViewModel = hiltViewModel(),
-    scannerViewModel: ScannerViewModel = hiltViewModel()
+    scannerViewModel: ScannerViewModel = hiltViewModel(),
+    onArticleClick: (Article.Articuls) -> Unit
 ) {
     var articles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var filteredArticles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
@@ -53,7 +57,7 @@ fun ObraborkaScreen(
         try {
             isLoading = true
             articles = viewModel.getTasksInWork(taskName, 0).articuls
-            filteredArticles = articles // Изначально отображаем все записи
+            filteredArticles = articles
         } catch (e: Exception) {
             Toast.makeText(context, "Ошибка загрузки: ${e.message}", Toast.LENGTH_SHORT).show()
         } finally {
@@ -61,7 +65,7 @@ fun ObraborkaScreen(
         }
     }
 
-    // Фильтрация при изменении штрих-кода
+    // Фильтрация данных по штрих-коду
     LaunchedEffect(scannedBarcode) {
         if (scannedBarcode.isNotEmpty()) {
             filteredArticles = articles.filter {
@@ -70,41 +74,39 @@ fun ObraborkaScreen(
         }
     }
 
-    // Фильтрация при изменении поискового запроса
+    // Фильтрация по поисковому запросу
     LaunchedEffect(searchQuery) {
-        val query = searchQuery
-        filteredArticles = articles.filter {
-            it.nazvanieTovara?.contains(query, ignoreCase = true) == true ||
-                    it.artikulSyrya?.contains(query, ignoreCase = true) == true ||
-                    it.artikul?.toString()?.contains(query) == true ||
-                    it.shk?.contains(query) == true ||
-                    it.shkSyrya?.contains(query) == true
+        filteredArticles = articles.filter { article ->
+            article.nazvanieTovara?.contains(searchQuery, ignoreCase = true) == true ||
+                    article.artikul?.toString()?.contains(searchQuery) == true ||
+                    article.shk?.contains(searchQuery) == true ||
+                    article.shkSyrya?.contains(searchQuery) == true
         }
     }
 
-    // UI отображение
+    // Основной UI
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
-            .background(Color(0xffffffff)),
+            .background(Color.White),
     ) {
+        // Заголовок
         Text(
             text = taskName,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 12.dp),
-            fontSize = 14.sp,
-            maxLines = 1
+            fontSize = 18.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        // Поле ввода для поиска
+        // Поле поиска
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Поиск") },
+            label = { Text("Поиск по артикулу или ШК") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = 8.dp)
         )
 
         if (isLoading) {
@@ -119,7 +121,10 @@ fun ObraborkaScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleCard(article = article)
+                        ArticleCard(
+                            article = article,
+                            onClick = { onArticleClick(article) }
+                        )
                     }
                 }
             }
@@ -129,26 +134,53 @@ fun ObraborkaScreen(
 
 
 @Composable
-fun ArticleCard(article: Article.Articuls) {
+fun ArticleCard(article: Article.Articuls, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.elevatedCardElevation(),
+            .padding(vertical = 6.dp, horizontal = 4.dp)
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White // Динамический фон
+            containerColor = Color(0xFFFAFAFA)
         )
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text(text = "${article.nazvanieTovara ?: "Не указано"}", style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2, fontSize = 14.sp)
-            Text(text = "Артикул: ${article.artikul ?: "Не указан"}", style = MaterialTheme.typography.bodyMedium)
+        Column(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = article.nazvanieTovara ?: "Не указано",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.padding(top = 4.dp))
+            Text(
+                text = "Артикул: ${article.artikul ?: "Не указан"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             if (!article.artikulSyrya.isNullOrEmpty()) {
-                Text(text = "Артикул сырья: ${article.artikulSyrya}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Артикул сырья: ${article.artikulSyrya}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
             }
-            Text(text = "ШК: ${article.shk ?: "Не указан"}", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = "ШК: ${article.shk ?: "Не указан"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             if (!article.shkSyrya.isNullOrEmpty()) {
-                Text(text = "ШК сырья: ${article.shkSyrya}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "ШК сырья: ${article.shkSyrya}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
             }
         }
     }

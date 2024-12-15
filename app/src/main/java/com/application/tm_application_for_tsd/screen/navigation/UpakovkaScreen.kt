@@ -116,7 +116,7 @@ fun UpakovkaScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleCard(article = article)
+                        ArticleCard(article = article, {})
                     }
                 }
             }
