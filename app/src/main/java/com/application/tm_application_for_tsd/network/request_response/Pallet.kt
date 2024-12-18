@@ -15,7 +15,10 @@ data class ArticleForPallet(
 
 data class Articles(
     @SerializedName("Artikul") val articul: Int,
-    @SerializedName("Kolvo_Tovarov") val nazvanieTovara: Int,
-    @SerializedName("Mesto") val mesto: Int
-)
+    @SerializedName("Kolvo_Tovarov") val kolvo: Int,
+    @SerializedName("Mesto") val mesto: Int,
+    @SerializedName("Vlozhennost") val vlozhennost: Int,
+    @SerializedName("Nazvanie_Tovara") val nazvanieTovara: String,
+
+    )
 

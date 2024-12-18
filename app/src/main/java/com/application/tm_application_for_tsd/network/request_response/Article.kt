@@ -1,12 +1,15 @@
 package com.application.tm_application_for_tsd.network.request_response
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
 data class Article(
     @SerializedName("success") val success: Boolean,
     @SerializedName("value") val articuls: List<Articuls>,
     @SerializedName("errorCode") val errorCode: Int
 ) {
+    @Parcelize
     data class Articuls(
         @SerializedName("ID") val id: Long?,
         @SerializedName("Pref") val pref: String?,
@@ -56,5 +59,5 @@ data class Article(
         @SerializedName("Time_End") val timeEnd: String?,
         @SerializedName("Persent") val persent: String?,
         @SerializedName("SHK_WPS") val shkWps: String?
-    )
+    ): Parcelable
 }

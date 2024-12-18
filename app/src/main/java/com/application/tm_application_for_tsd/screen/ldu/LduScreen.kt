@@ -3,6 +3,7 @@ package com.application.tm_application_for_tsd.screen.ldu
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,14 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.tm_application_for_tsd.viewModel.LduViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LduScreen(artikul: Int, taskName: String) {
-    val viewModel: LduViewModel = viewModel()
-    val uiState = viewModel.uiState.collectAsState().value
+fun LduScreen(
+    artikul: String,
+    taskName: String,
+    viewModel: LduViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadLduData(artikul, taskName)
@@ -28,33 +33,32 @@ fun LduScreen(artikul: Int, taskName: String) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Выполняемые операции",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                title = { Text("Управление LDU",
+                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.titleLarge,
+                ) },
+                colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color(0xffffffff))
             )
         },
         content = { padding ->
             when (uiState) {
                 is LduViewModel.UiState.Loading -> LoadingState()
                 is LduViewModel.UiState.Loaded -> {
+                    val actions = (uiState as LduViewModel.UiState.Loaded).actions
+                        .filter { it.count > 0 } // Отображаем только с ненулевым count
+
                     LazyColumn(
                         modifier = Modifier
                             .padding(padding)
-                            .fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(16.dp)
+                            .fillMaxSize()
+                            .background(Color(0xffffffff)),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        contentPadding = PaddingValues(2.dp)
                     ) {
-                        val filteredActions = uiState.actions.filter { it.count > 0 }
-                        items(filteredActions.size) { index ->
+                        items(actions) { action ->
                             DisplayActionItem(
-                                actionName = filteredActions[index].name,
-                                count = filteredActions[index].count
+                                actionName = action.name,
+                                count = action.count
                             )
                         }
                     }
@@ -64,35 +68,38 @@ fun LduScreen(artikul: Int, taskName: String) {
         }
     )
 }
-
 @Composable
 fun DisplayActionItem(actionName: String, count: Int) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(4.dp)
+            .padding(4.dp)
+            .background(Color(0xFFffffff)),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFffffff)
+        )
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp),
+                .fillMaxWidth()
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = actionName,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = count.toString(),
-                fontSize = 18.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
         }
     }
 }
-

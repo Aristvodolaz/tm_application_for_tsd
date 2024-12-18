@@ -11,10 +11,13 @@ import com.application.tm_application_for_tsd.network.request_response.SrokGodno
 import com.application.tm_application_for_tsd.network.request_response.Status
 import com.application.tm_application_for_tsd.network.request_response.Task
 import com.application.tm_application_for_tsd.network.request_response.Universal
+import com.application.tm_application_for_tsd.network.request_response.UpdateShk
+import com.application.tm_application_for_tsd.network.request_response.UpdateSrokGodnosti
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxRequest
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -50,7 +53,10 @@ interface Api {
     @GET("/market/tasks/getLDU")
     suspend fun getLDU(@Query("artikul") articul: Int , @Query("name") name: String): ChooseOp
 
-    @POST("/market/tasks/updateTasks")
+    @DELETE("/market/tasks/deleteRecord")
+    suspend fun deleteRecord(@Query("id") id: Long , @Query("task") name: String): ChooseOp
+
+    @POST("market/tasks/updateTasks")
     suspend fun updateCheckBox(@Body data: CheckBox): Universal
 
     @GET("/market/tasks/searchArticulTask")
@@ -61,5 +67,11 @@ interface Api {
 
     @POST("/privyazka/addSrokGodnosti")
     suspend fun addSrokGodnosti(@Body data: SrokGodnosti): Universal
+
+    @POST("/srok")
+    suspend fun sendSrokGodnosti(@Body data: UpdateSrokGodnosti) : Universal
+
+    @POST("/market/tasks/recordNewShk")
+    suspend fun updateShk(@Body data: UpdateShk): Universal
 
 }

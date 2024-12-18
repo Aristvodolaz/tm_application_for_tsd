@@ -12,6 +12,7 @@ class SPHelper(context: Context) {
         private const val ARTICLE_WORK = "article_work"
         private const val NAME_STUFF_WORK = "name_stuff_work"
         private const val NAME_EMPLOYER = "name_employer"
+        private const val PREF = "pref"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -65,6 +66,14 @@ class SPHelper(context: Context) {
     // Retrieve Name of Employer
     fun getNameEmployer(): String? {
         return sharedPreferences.getString(NAME_EMPLOYER, null)
+    }
+
+    fun setPref(pref: String){
+        sharedPreferences.edit().putString(PREF, pref).apply()
+    }
+
+    fun getPref(): String?{
+        return sharedPreferences.getString(PREF, null)
     }
 
     // Clear all preferences

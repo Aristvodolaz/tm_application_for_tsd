@@ -81,9 +81,10 @@ class TaskViewModel @Inject constructor(
         fetchTasks(sklad.pref) // Загружаем задания для выбранного склада
     }
 
-    fun deleteArticle(id: Long?) {
+    fun deleteArticle(id: Long, taskName: String) {
         viewModelScope.launch {
             try {
+                api.deleteRecord(id, taskName )
 //                api.deleteArticle(articleId) // Ваш API для удаления
             } catch (e: Exception) {
                 // Обработать ошибку

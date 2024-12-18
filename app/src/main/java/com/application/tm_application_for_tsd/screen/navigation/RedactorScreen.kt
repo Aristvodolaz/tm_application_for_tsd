@@ -104,7 +104,7 @@ fun RedactorScreen(
             text = taskName,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 12.dp),
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             maxLines = 1
         )
 
@@ -133,7 +133,11 @@ fun RedactorScreen(
                             article = article,
                             onDelete = { selectedArticle ->
                                 // Удаление из списка
-                                viewModel.deleteArticle(selectedArticle.id)
+                                selectedArticle.id?.let { selectedArticle.nazvanieZadaniya?.let { it1 ->
+                                    viewModel.deleteArticle(it,
+                                        it1
+                                    )
+                                } }
                                 Toast.makeText(
                                     context,
                                     "Удалено: ${selectedArticle.nazvanieTovara}",
@@ -167,7 +171,11 @@ fun confirmDeletion(
             text = { Text("Вы уверены, что хотите удалить ${article.nazvanieTovara}?") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.deleteArticle(article.id)
+                    article.id?.let { article.nazvanieZadaniya?.let { it1 ->
+                        viewModel.deleteArticle(it,
+                            it1
+                        )
+                    } }
                     Toast.makeText(context, "Удалено: ${article.nazvanieTovara}", Toast.LENGTH_SHORT).show()
                     onDeleteConfirmed()
                     showDialog = false
@@ -196,8 +204,12 @@ fun ArticleRedactorCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFAFAFA)
+        ),
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.elevatedCardElevation(4.dp)
+
     ) {
         Box(modifier = Modifier.padding(12.dp)) {
             Row(

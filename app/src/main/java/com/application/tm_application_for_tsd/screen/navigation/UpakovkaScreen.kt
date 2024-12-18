@@ -36,7 +36,8 @@ import com.application.tm_application_for_tsd.viewModel.TaskViewModel
 fun UpakovkaScreen(
     taskName: String,
     viewModel: TaskViewModel = hiltViewModel(),
-    scannerViewModel: ScannerViewModel = hiltViewModel()
+    scannerViewModel: ScannerViewModel = hiltViewModel(),
+    onArticleClick: (Article.Articuls) -> Unit
 ) {
     var articles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var filteredArticles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
@@ -90,7 +91,7 @@ fun UpakovkaScreen(
             text = taskName,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 12.dp),
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             maxLines = 1
         )
 
@@ -116,7 +117,9 @@ fun UpakovkaScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleCard(article = article, {})
+                        ArticleCard(article = article,
+                            onClick = { onArticleClick(article) }
+                        )
                     }
                 }
             }

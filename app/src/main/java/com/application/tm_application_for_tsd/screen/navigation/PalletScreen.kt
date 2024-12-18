@@ -22,7 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.tm_application_for_tsd.network.request_response.Article
@@ -68,8 +70,10 @@ fun PalletScreen(
     ) {
         Text(
             text = "$taskName",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 8.dp),
+            maxLines = 1
         )
 
         when {
@@ -128,14 +132,27 @@ fun PalletScreen(
                             if (taskName.contains("WB", ignoreCase = true)) {
                                 Column(modifier = Modifier.padding(8.dp)) {
                                     Text(text = "Артикул: ${article.articul}")
-                                    Text(text = "Вложенность: ${article.nazvanieTovara}")
+                                    Text(text = "Вложенность: ${article.kolvo}")
                                     Text(text = "Места: 1")
                                 }
                             } else {
                                 Column(modifier = Modifier.padding(8.dp)) {
-                                    Text(text = "Артикул: ${article.articul}")
-                                    Text(text = "Название: ${article.nazvanieTovara}")
-                                    Text(text = "Места: ${article.mesto}")
+                                    Text(
+                                        text = article.nazvanieTovara ?: "Не указано",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                        fontSize = 16.sp,
+                                        maxLines = 2,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(text = "Артикул: ${article.articul}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray)
+                                    Text(text = "Места: ${article.mesto}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray)
+                                    Text(text = "Вложенность: ${article.vlozhennost}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray)
                                 }
                             }
                         }

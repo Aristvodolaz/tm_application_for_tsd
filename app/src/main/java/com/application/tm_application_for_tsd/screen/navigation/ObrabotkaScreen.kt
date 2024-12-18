@@ -95,15 +95,16 @@ fun ObraborkaScreen(
         Text(
             text = taskName,
             style = MaterialTheme.typography.titleLarge,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp),
+            maxLines = 1
         )
 
         // Поле поиска
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Поиск по артикулу или ШК") },
+            label = { Text("Поиск ") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)

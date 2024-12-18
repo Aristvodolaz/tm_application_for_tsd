@@ -12,13 +12,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.tm_application_for_tsd.viewModel.LduViewModel
+import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddLduScreen(artikul: Int, taskName: String, onSaveSuccess: () -> Unit) {
-    val viewModel: LduViewModel = viewModel()
+fun AddLduScreen(artikul: String, taskName: String, onSaveSuccess: () -> Unit, viewModel: LduViewModel = hiltViewModel()){
     val uiState = viewModel.uiState.collectAsState().value
 
     LaunchedEffect(Unit) {
@@ -35,8 +36,8 @@ fun AddLduScreen(artikul: Int, taskName: String, onSaveSuccess: () -> Unit) {
                         modifier = Modifier
                             .padding(padding)
                             .fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(4.dp)
                     ) {
                         items(uiState.actions.size) { index ->
                             ActionItem(
@@ -54,7 +55,7 @@ fun AddLduScreen(artikul: Int, taskName: String, onSaveSuccess: () -> Unit) {
         bottomBar = {
             if (uiState is LduViewModel.UiState.Loaded) {
                 AddLduBottomBar {
-                    viewModel.saveActions(artikul, taskName) { onSaveSuccess() }
+                    viewModel.saveActions(artikul.toInt(), taskName) { onSaveSuccess() }
                 }
             }
         }
@@ -65,36 +66,67 @@ fun AddLduScreen(artikul: Int, taskName: String, onSaveSuccess: () -> Unit) {
 @Composable
 fun AddLduTopBar() {
     TopAppBar(
-        title = { Text("Управление LDU", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+        title = { Text("Управление LDU",
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleLarge,
+        ) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color(0xffffffff))
     )
 }
 
 @Composable
 fun AddLduBottomBar(onSaveClick: () -> Unit) {
-    BottomAppBar {
+    BottomAppBar(modifier = Modifier.height(48.dp)) {
         Button(
             onClick = onSaveClick,
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
         ) {
-            Text("Сохранить и продолжить", fontSize = 16.sp)
+            Text("Сохранить и продолжить", fontSize = 14.sp)
         }
     }
 }
 
 @Composable
 fun ActionItem(actionName: String, count: Int, onIncrement: () -> Unit, onDecrement: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+        elevation = CardDefaults.elevatedCardElevation(4.dp)
+    ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(actionName, fontSize = 18.sp)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = onDecrement, enabled = count > 0) { Text("-") }
-                Text(count.toString(), modifier = Modifier.padding(horizontal = 8.dp))
-                Button(onClick = onIncrement) { Text("+") }
+            // Название действия слева
+            Text(
+                text = actionName,
+                fontSize = 14.sp,
+                modifier = Modifier.weight(1f) // Занимает все свободное пространство
+            )
+
+            // Управляющие кнопки справа
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Button(
+                    onClick = onDecrement,
+                    enabled = count > 0
+                ) {
+                    Text("-")
+                }
+                Text(
+                    text = count.toString(),
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(horizontal = 6.dp)
+                )
+                Button(onClick = onIncrement) {
+                    Text("+")
+                }
             }
         }
     }
