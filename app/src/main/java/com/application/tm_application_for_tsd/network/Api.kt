@@ -3,7 +3,9 @@ package com.application.tm_application_for_tsd.network
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.CheckBox
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
+import com.application.tm_application_for_tsd.network.request_response.Duplicate
 import com.application.tm_application_for_tsd.network.request_response.EmployeeResponse
+import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.Pallet
 import com.application.tm_application_for_tsd.network.request_response.PalletList
 import com.application.tm_application_for_tsd.network.request_response.Sklad
@@ -73,5 +75,15 @@ interface Api {
 
     @POST("/market/tasks/recordNewShk")
     suspend fun updateShk(@Body data: UpdateShk): Universal
+
+    @POST("/send/update")
+    suspend fun finishedSend(@Body data: FinishOzon): Universal
+
+    @POST("/market/tasks/duplicate")
+    suspend fun getDuplicate(@Body data: Duplicate): Universal
+
+    @POST("/market/tasks/cancel")
+    suspend fun excludeArticle(@Query("taskName") name: String, @Query("articul") articule: Int, @Query("comment") comment: String, @Query("reason") reason: String): Universal
+
 
 }

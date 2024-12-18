@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Sorter</string>
+    <string name="app_name">Packer</string>
+
+    <string-array name="cancel_reasons">
+        <item>Не соответствует СГ</item>
+        <item>Брак</item>
+        <item>Недопоставка</item>
+        <item>Вычерк склада</item>
+        <item>Убрать из обработки(экстренно)</item>
+    </string-array>
 </resources>
