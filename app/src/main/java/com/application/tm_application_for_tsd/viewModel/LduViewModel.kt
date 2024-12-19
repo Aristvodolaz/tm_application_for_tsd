@@ -3,7 +3,6 @@ package com.application.tm_application_for_tsd.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
-import com.application.tm_application_for_tsd.network.request_response.CheckBox
 import com.application.tm_application_for_tsd.utils.InfoForCheckBox
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ActionItem(val name: String, var count: Int)
+data class ActionItem(val name: String, var count: String)
 
 @HiltViewModel
 class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel() {
@@ -57,7 +56,9 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
                             else -> null
                         }
                     }
-                    ActionItem(name, if (value == "V") 1 else 0)
+                    ActionItem(name, if (value == "V") "1" else {
+                        value?.toString() ?: "0"
+                    })
                 }
 
                 _uiState.value = UiState.Loaded(actions)
@@ -70,33 +71,41 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
 
     fun incrementAction(index: Int) {
         if (_uiState.value is UiState.Loaded) {
-            val actions = (_uiState.value as UiState.Loaded).actions
-            _uiState.value = UiState.Loaded(actions.mapIndexed { i, action ->
-                if (i == index) action.copy(count = action.count + 1) else action
-            })
+            val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
+            val currentAction = actions[index]
+            val currentValue = currentAction.count.toIntOrNull() ?: 0
+            actions[index] = currentAction.copy(count = (currentValue + 1).toString())
+            _uiState.value = UiState.Loaded(actions)
         }
     }
 
     fun decrementAction(index: Int) {
         if (_uiState.value is UiState.Loaded) {
-            val actions = (_uiState.value as UiState.Loaded).actions
-            _uiState.value = UiState.Loaded(actions.mapIndexed { i, action ->
-                if (i == index) action.copy(count = maxOf(0, action.count - 1)) else action
-            })
+            val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
+            val currentAction = actions[index]
+            val currentValue = currentAction.count.toIntOrNull() ?: 0
+            if (currentValue > 0) {
+                actions[index] = currentAction.copy(count = (currentValue - 1).toString())
+                _uiState.value = UiState.Loaded(actions)
+            }
         }
     }
+
 
     fun saveActions(artikul: Int, taskName: String, onComplete: () -> Unit) {
         if (_uiState.value is UiState.Loaded) {
             val actions = (_uiState.value as UiState.Loaded).actions
-            val columnsToUpdate = actions
-                .filter { it.count >0 }
-                .mapIndexedNotNull { index, _ -> InfoForCheckBox.infoBoxToDB[index] }
 
-            val request = CheckBox(taskName, artikul, columnsToUpdate)
+            // Prepare request body with quantities
+            val requestBody = mutableMapOf<String, String>().apply {
+                actions.forEachIndexed { index, action ->
+                    put(InfoForCheckBox.infoBoxToDB[index], action.count.toString())
+                }
+            }
+
             viewModelScope.launch {
                 try {
-                    apiService.updateCheckBox(request)
+                    apiService.updateCheckBox(taskName, artikul, requestBody)
                     onComplete()
                 } catch (e: Exception) {
                     // Handle error

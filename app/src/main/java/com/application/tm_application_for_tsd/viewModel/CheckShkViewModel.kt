@@ -7,7 +7,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.tm_application_for_tsd.network.request_response.Article
+import com.application.tm_application_for_tsd.network.request_response.UpdateShk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -33,7 +35,7 @@ class CheckShkViewModel @Inject constructor(
                     saveArticleData(articul)
                     updateState(successMessage = "Товар найден: ${articul.nazvanieTovara}", isLoading = false)
                 } else {
-                    searchArticleInDb(shk)
+                    searchArticleInDb(spHelper.getArticuleWork().toString())
                 }
             } catch (e: Exception) {
                 updateState(errorMessage = "Ошибка: ${e.localizedMessage}", isLoading = false)
@@ -47,12 +49,16 @@ class CheckShkViewModel @Inject constructor(
     private fun searchArticleInDb(shk: String) {
         viewModelScope.launch {
             try {
-                val response = api.getArticulTask(spHelper.getTaskName() ?: "", shk)
-                if (response.success && response.articuls.isEmpty()) {
-                    // Если ШК не найден, показываем диалог
-                    updateState(showRewriteDialog = true, isLoading = false)
+                val response = api.searchInDbForArticule(shk)
+                if (response.success && response.value!=null) {
+                    if(response.value[0].shk==null || response.value[0].shk.equals("null")){
+                        updateState(showRewriteDialog = true, isLoading = false)
+                    } else {
+                        spHelper.setShkWork(response.value[0].shk)
+                        updateShk(response.value[0].shk)
+                    }
                 } else {
-                    updateState(errorMessage = "Артикул не найден в базе данных.", isLoading = false)
+                    updateState(showRewriteDialog = true, isLoading = false)
                 }
             } catch (e: Exception) {
                 updateState(errorMessage = "Ошибка: ${e.localizedMessage}", isLoading = false)
@@ -60,6 +66,41 @@ class CheckShkViewModel @Inject constructor(
         }
     }
 
+    fun updateShk(shk: String){
+        viewModelScope.launch {
+            try {
+                val response = spHelper.getTaskName()
+                    ?.let { UpdateShk(it, spHelper.getArticuleWork()!!, shk) }
+                    ?.let { api.updateShk(it) }
+
+                if(response!!.success){
+                    updateState(successMessage = "ШК успешно перезаписан.", showRewriteDialog = false)
+                } else  updateState(errorMessage = "Ошибка перезаписи ШК.", showRewriteDialog = false)
+
+
+            }catch (e: Exception) {
+                updateState(errorMessage = "Ошибка: ${e.localizedMessage}", isLoading = false)
+            }
+        }
+
+    }
+//
+//    fun searchArticleInDbForSG(article: String) {
+//        viewModelScope.launch {
+//            try {
+//                val response = api.searchInDbForArticule(article)
+//                if(response.success && response.value!=null){
+//                    if(response.value[0].periodWatch == 1 && response.value[0].periodDays>0){
+//                        view.checkLastPeriodDate(response.value[0].periodDays)
+//                    } else{
+//                        view.writeLastDate()
+//                    }
+//                } else {
+//                    view.errorMessage( "Артикул не найден!")
+//                }
+//            }
+//        }
+//    }
     /**
      * Сохранение данных артикула в SharedPreferences
      */
@@ -76,7 +117,7 @@ class CheckShkViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 spHelper.setShkWork(newShk)
-                updateState(successMessage = "ШК успешно перезаписан.", showRewriteDialog = false)
+                updateShk(newShk)
             } catch (e: Exception) {
                 updateState(errorMessage = "Ошибка перезаписи ШК.", showRewriteDialog = false)
             }

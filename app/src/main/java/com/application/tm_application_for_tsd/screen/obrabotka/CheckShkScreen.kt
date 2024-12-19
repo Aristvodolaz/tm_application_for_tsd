@@ -32,8 +32,10 @@ fun CheckShkScreen(
     // Effect to handle barcode scanning
     LaunchedEffect(scanInput) {
         if (scanInput.isNotEmpty()) {
+            spHelper.setShkWork(scanInput)
             Log.d("CheckShkScreen", "Barcode scanned: $scanInput")
             checkShkViewModel.findInExcel(scanInput, spHelper.getTaskName().orEmpty())
+            scanViewModel.clearBarcode() // Сброс после обработки
         }
     }
 

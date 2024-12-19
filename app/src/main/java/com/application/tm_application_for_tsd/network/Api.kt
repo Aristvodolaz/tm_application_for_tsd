@@ -1,13 +1,13 @@
 package com.application.tm_application_for_tsd.network
 
 import com.application.tm_application_for_tsd.network.request_response.Article
-import com.application.tm_application_for_tsd.network.request_response.CheckBox
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
 import com.application.tm_application_for_tsd.network.request_response.Duplicate
 import com.application.tm_application_for_tsd.network.request_response.EmployeeResponse
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.Pallet
 import com.application.tm_application_for_tsd.network.request_response.PalletList
+import com.application.tm_application_for_tsd.network.request_response.ShkInDb
 import com.application.tm_application_for_tsd.network.request_response.Sklad
 import com.application.tm_application_for_tsd.network.request_response.SrokGodnosti
 import com.application.tm_application_for_tsd.network.request_response.Status
@@ -58,8 +58,8 @@ interface Api {
     @DELETE("/market/tasks/deleteRecord")
     suspend fun deleteRecord(@Query("id") id: Long , @Query("task") name: String): ChooseOp
 
-    @POST("market/tasks/updateTasks")
-    suspend fun updateCheckBox(@Body data: CheckBox): Universal
+    @POST("market/tasks/updateTasksNew")
+    suspend fun updateCheckBox(@Query("taskName") name: String, @Query("artikul") articul: Int, @Body data: MutableMap<String, String>): Universal
 
     @GET("/market/tasks/searchArticulTask")
     suspend fun getArticulTask(@Query("taskName") nameTask: String ,@Query("articul") articul: String): Article
@@ -84,6 +84,7 @@ interface Api {
 
     @POST("/market/tasks/cancel")
     suspend fun excludeArticle(@Query("taskName") name: String, @Query("articul") articule: Int, @Query("comment") comment: String, @Query("reason") reason: String): Universal
-
+    @GET("/article") suspend fun searchInDbForShk(@Query("shk") shk: String): ShkInDb
+    @GET("/article") suspend fun searchInDbForArticule(@Query("articul") articule: String): ShkInDb
 
 }

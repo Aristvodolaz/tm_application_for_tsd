@@ -79,6 +79,8 @@ fun RedactorScreen(
             filteredArticles = articles.filter {
                 it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true
             }
+            scannerViewModel.clearBarcode()
+
         }
     }
 

@@ -41,6 +41,8 @@ fun AuthScreen(
         if (barcodeData.isNotEmpty()) {
             Log.d("AuthScreen", "Authenticating barcode: $barcodeData")
             authViewModel.authenticate(barcodeData)
+            scannerViewModel.clearBarcode()
+
         }
     }
 

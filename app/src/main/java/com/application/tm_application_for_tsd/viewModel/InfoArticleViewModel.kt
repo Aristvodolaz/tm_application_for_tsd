@@ -136,6 +136,27 @@ class InfoArticleViewModel @Inject constructor(
         _navigateToNextScreen.value = false
     }
 
+    fun excludeArticle(reason: String, comment: String) {
+        viewModelScope.launch {
+            try {
+                val response = spHelper.getArticuleWork()?.toInt()?.let {
+                    api.excludeArticle(
+                        spHelper.getTaskName() ?: "",
+                        it,
+                        reason,
+                        comment
+                    )
+                }
+                if (response!!.success) {
+                    _state.value = _state.value.copy(successMessage = "Артикул успешно исключён из обработки!")
+                } else {
+                   _state.value = _state.value.copy(errorMessage = "Ошибка исключения артикула")
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(errorMessage = "Ошибка: ${e.localizedMessage}")
+            }
+        }
+    }
 
 }
 

@@ -20,6 +20,10 @@ class ScannerViewModel @Inject constructor() : ViewModel() {
         Log.d("ScannerViewModel", "Updating barcode data: $data")
         _barcodeData.value = data // Установка нового значения
     }
+    fun clearBarcode() {
+        _barcodeData.value = "" // Сбрасываем данные после обработки
+        _error.value = "" // Сбрасываем ошибки
+    }
 
     fun onScanError(errorMessage: String) {
         Log.d("ScannerViewModel", "Updating error: $errorMessage")

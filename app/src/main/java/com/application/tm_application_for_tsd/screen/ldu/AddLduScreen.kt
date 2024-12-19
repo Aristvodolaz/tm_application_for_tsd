@@ -42,7 +42,7 @@ fun AddLduScreen(artikul: String, taskName: String, onSaveSuccess: () -> Unit, v
                         items(uiState.actions.size) { index ->
                             ActionItem(
                                 actionName = uiState.actions[index].name,
-                                count = uiState.actions[index].count,
+                                count = uiState.actions[index].count.toInt(),
                                 onIncrement = { viewModel.incrementAction(index) },
                                 onDecrement = { viewModel.decrementAction(index) }
                             )

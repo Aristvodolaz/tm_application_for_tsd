@@ -6,12 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,10 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInbox
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,19 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.screen.AuthScreen
 import com.application.tm_application_for_tsd.screen.TaskScreen
 import com.application.tm_application_for_tsd.screen.ldu.AddLduScreen
-import com.application.tm_application_for_tsd.screen.ldu.AddLduTopBar
 import com.application.tm_application_for_tsd.screen.ldu.LduScreen
 import com.application.tm_application_for_tsd.screen.navigation.ObraborkaScreen
 import com.application.tm_application_for_tsd.screen.navigation.PalletScreen
@@ -53,6 +43,8 @@ import com.application.tm_application_for_tsd.screen.navigation.RedactorScreen
 import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.CheckShkScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoArticleScreen
+import com.application.tm_application_for_tsd.screen.obrabotka.InfoSyryoScreen
+import com.application.tm_application_for_tsd.screen.upakovka.OzonScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
@@ -168,13 +160,31 @@ fun TSDApplication(
                             spHelper.setPref(article.pref.toString())
                             spHelper.setNameStuffWork(article.nazvanieTovara.toString())
                             navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
-                            navController.navigate("info_article_screen")
+                            val destination = if (article.kolVoSyrya != null) {
+                                "info_syryo_screen"
+                            } else {
+                                "info_article_screen"
+                            }
+                            navController.navigate(destination)
                         }
                     )
                 }
             }
 
 
+            composable("info_syryo_screen"){
+                val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                if (article != null) {
+                    InfoSyryoScreen(spHelper = spHelper, article = article, viewModel = articleViewModel,
+                        onNavigateToNext = {
+                            // Здесь реализуйте переход на новый экран
+                            navController.navigate("write_ldu")
+                        })
+                } else {
+                    // Отобразить ошибку, если объект article равен null
+                    Text("Ошибка: артикул не найден", modifier = Modifier.fillMaxSize(), color = Color.Red)
+                }
+            }
             composable("info_article_screen") { backStackEntry ->
                 val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
@@ -185,7 +195,7 @@ fun TSDApplication(
                         })
                 } else {
                     // Отобразить ошибку, если объект article равен null
-                    Text("Ошибка: статья не найдена", modifier = Modifier.fillMaxSize(), color = Color.Red)
+                    Text("Ошибка: артикул не найден", modifier = Modifier.fillMaxSize(), color = Color.Red)
                 }
             }
 
@@ -196,7 +206,9 @@ fun TSDApplication(
             }
 
             composable("write_ldu"){
-                spHelper.getTaskName()?.let { AddLduScreen(spHelper.getArticuleWork()!!, it,{}) }
+                spHelper.getTaskName()?.let { AddLduScreen(spHelper.getArticuleWork()!!, it,{
+                    navController.navigate("obrabotka")
+                }) }
             }
 
 
@@ -207,18 +219,30 @@ fun TSDApplication(
                         onArticleClick = { article ->
                             spHelper.setArticuleWork(article.artikul.toString())
                             spHelper.setShkWork(article.shk.toString())
+                            spHelper.setPref(article.pref.toString())
                             spHelper.setNameStuffWork(article.nazvanieTovara.toString())
-                            navController.navigate("upakovka_article_screen/${article.artikul}")
+                            navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
+                            navController.navigate("upakovka_article_screen")
                         }) }
 
             }
-            composable(
-                route = "upakovka_article_screen/{artikul}",
-                arguments = listOf(navArgument("artikul") { type = NavType.StringType })
-            ) {
-                spHelper.getTaskName()?.let { LduScreen(spHelper.getArticuleWork()!!,
-                    spHelper.getTaskName()!!
-                ) }
+            composable("upakovka_article_screen") {
+                val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                if (article != null) {
+                    spHelper.getTaskName()?.let {
+                        LduScreen(
+                            spHelper.getArticuleWork()!!,
+                            spHelper.getTaskName()!!,
+                            toNextScreen = {
+                                navController.navigate("set_in_box")
+                            }
+                        )
+                    }
+                }
+            }
+
+            composable("set_in_box"){
+                OzonScreen(spHelper = spHelper)
             }
 
             composable("redactor") {

@@ -55,6 +55,8 @@ fun PalletScreen(
                 it.pallet_no.contains(scannedBarcode)
             }
         }
+        scannerViewModel.clearBarcode()
+
     }
 
     // Фильтрация при изменении поискового запроса
@@ -119,7 +121,11 @@ fun PalletScreen(
             }
             else -> {
                 // Отображение статей для выбранного паллета
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f) // Устанавливаем вес для списка статей
+                ) {
                     items(state.articles.size) { index ->
                         val article = state.articles[index]
                         Card(

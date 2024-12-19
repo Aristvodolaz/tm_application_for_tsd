@@ -4,7 +4,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -16,6 +18,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -29,18 +32,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.tm_application_for_tsd.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.tm_application_for_tsd.screen.dialog.ExcludeArticleDialog
+import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.OzonViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OzonScreen(
-    viewModel: OzonViewModel = hiltViewModel()
+    viewModel: OzonViewModel = hiltViewModel(),
+    spHelper: SPHelper
 ) {
     val vneshnost by viewModel.vneshnost.collectAsState()
     val boxCount by viewModel.boxCount.collectAsState()
@@ -80,25 +86,29 @@ fun OzonScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
+        // Оборачиваем содержимое в вертикальную прокрутку
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color.White),
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()), // Добавлена прокрутка
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Отображение товарной информации
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
                 Column {
-                    Text("Товар: ", fontSize = 16.sp)
-                    Text("Артикул: ", fontSize = 14.sp)
-                    Text("ШК: ", fontSize = 14.sp)
+                    Text("${spHelper.getNameStuffWork()}", fontSize = 16.sp)
+                    Text("Артикул: ${spHelper.getArticuleWork()} ", fontSize = 14.sp)
+                    Text("ШК: ${spHelper.getShkWork()}", fontSize = 14.sp)
                 }
             }
 
+            // Поля ввода
             CustomTextField(
                 label = "Вложенность",
                 example = "Пример: 1",
@@ -120,13 +130,14 @@ fun OzonScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Кнопки
             Button(
                 onClick = { viewModel.sendFinishData() },
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 8.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
@@ -138,12 +149,12 @@ fun OzonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = {  showDialog = true },
+                onClick = { showDialog = true },
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 8.dp)
             ) {
                 Text("Нестандартная вложенность", color = Color.White, fontSize = 16.sp)
             }
@@ -151,16 +162,18 @@ fun OzonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = {showIsklDialog = true},
+                onClick = { showIsklDialog = true },
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 8.dp)
             ) {
-                Text("Исключить артикул из обработки", color = Color.White, fontSize = 16.sp)
+                Text("Исключить артикул из обработки", color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
             }
         }
+
+        // Диалоговые окна
         if (showDialog) {
             NonStandardDialog(
                 onDismiss = { showDialog = false },
@@ -171,18 +184,20 @@ fun OzonScreen(
             )
         }
 
-        if(showIsklDialog){
+        if (showIsklDialog) {
             ExcludeArticleDialog(
                 reasons = reasons,
-                onDismiss = { showDialog = false },
-                onConfirm = { reason, comment ->
-                    // Обработка исключения
-                    viewModel.excludeArticle(reason, comment)
+                onDismiss = { showIsklDialog = false },
+                onConfirm = { reason, comment, size ->
+                    viewModel.excludeArticle(reason, comment) // todo сюда надо добавить количество
+                    showIsklDialog = false
                 }
             )
         }
     }
 }
+
+
 @Composable
 fun NonStandardDialog(
     onDismiss: () -> Unit,
@@ -231,6 +246,7 @@ fun NonStandardDialog(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
     label: String,
@@ -238,22 +254,39 @@ fun CustomTextField(
     state: String,
     onValueChange: (String) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(label, fontSize = 14.sp, color = Color.Gray)
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .fillMaxWidth() // Исправлено, чтобы поле занимало всю ширину
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 4.dp) // Отступ между меткой и полем ввода
+        )
         TextField(
             value = state,
             onValueChange = onValueChange,
-            placeholder = { Text(example, color = Color.LightGray) },
+            placeholder = {
+                Text(
+                    text = example,
+                    color = Color.LightGray,
+                    fontSize = 14.sp
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                unfocusedTextColor = Color.Black,
+                focusedTextColor = Color.Black, // Убедитесь, что текст черного цвета
+                containerColor = Color.White, // Белый фон
+                focusedIndicatorColor = Color.Blue, // Цвет индикатора при фокусе
+                unfocusedIndicatorColor = Color.Gray, // Цвет индикатора без фокуса
+                focusedPlaceholderColor = Color.LightGray, // Цвет текста в placeholder
+                unfocusedPlaceholderColor = Color.White
+            ),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(Color.White, RoundedCornerShape(4.dp)) // Убедитесь, что фон белый
         )
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun OzonScreenPreview() {
-    OzonScreen()
 }

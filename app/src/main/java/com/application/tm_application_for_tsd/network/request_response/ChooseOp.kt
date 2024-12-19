@@ -73,14 +73,3 @@ data class LDUValue(
     @SerializedName("Op_470_Dop_Upakovka")
     val op470DopUpakovka: String? = null
 )
-
-data class CheckBox(
-    @SerializedName("Nazvanie_Zadaniya")
-    val zadanie: String,
-
-    @SerializedName("artikul")
-    val artikul: Int,
-
-    @SerializedName("columnsToUpdate")
-    val columns: List<String>
-)

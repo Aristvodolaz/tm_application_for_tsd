@@ -72,6 +72,8 @@ fun ObraborkaScreen(
                 it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true
             }
         }
+        scannerViewModel.clearBarcode()
+
     }
 
     // Фильтрация по поисковому запросу
