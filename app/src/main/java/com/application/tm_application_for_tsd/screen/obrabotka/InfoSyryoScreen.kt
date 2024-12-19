@@ -63,6 +63,8 @@ fun InfoSyryoScreen (
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
     var showExpirationDialog by remember { mutableStateOf(false) }
     var expirationPercentage by remember { mutableStateOf(0.0) }
+    var endDates by remember { mutableStateOf("") }
+
     // Обработка навигации
     LaunchedEffect(navigateToNext) {
         if (navigateToNext) {
@@ -114,11 +116,11 @@ fun InfoSyryoScreen (
                                 if (percentage < 75) {
                                     showExpirationDialog = true
                                 } else {
+                                    if(spHelper.getPref()=="WB") viewModel.addSrokForWB(calculatedEndDate)
                                     viewModel.addExpirationData(
                                         persent = "%.2f".format(percentage),
                                         endDate = calculatedEndDate
                                     )
-                                    Toast.makeText(context, "Осталось: ${"%.2f".format(percentage)}%", Toast.LENGTH_SHORT).show()
                                 }
                             } ?: Toast.makeText(context, "Некорректные данные", Toast.LENGTH_SHORT).show()
                         } else {
@@ -131,9 +133,11 @@ fun InfoSyryoScreen (
                     ShowExpirationDialog(
                         percentagePassed = expirationPercentage,
                         onConfirm = {
-                            showExpirationDialog = false
-
-                            Toast.makeText(context, "Работа с товаром продолжена", Toast.LENGTH_SHORT).show()
+                            if(spHelper.getPref()=="WB") viewModel.addSrokForWB(endDates)
+                            viewModel.addExpirationData(
+                                persent = "%.2f".format(expirationPercentage),
+                                endDate = endDates
+                            )
                         },
                         onCancel = {
                             showExpirationDialog = false

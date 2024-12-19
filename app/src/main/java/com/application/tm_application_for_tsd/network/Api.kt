@@ -1,5 +1,6 @@
 package com.application.tm_application_for_tsd.network
 
+import com.application.tm_application_for_tsd.network.request_response.AddBox
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
 import com.application.tm_application_for_tsd.network.request_response.Duplicate
@@ -17,6 +18,8 @@ import com.application.tm_application_for_tsd.network.request_response.UpdateShk
 import com.application.tm_application_for_tsd.network.request_response.UpdateSrokGodnosti
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxRequest
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxResponse
+import com.application.tm_application_for_tsd.network.request_response.WBBox
+import com.application.tm_application_for_tsd.network.request_response.WBPrivyazka
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -45,7 +48,6 @@ interface Api {
     @GET("/pallets")
     suspend fun getPallets(@Query("taskName") taskName: String): PalletList
 
-
     @GET("pallets/articles")
     suspend fun getArticleOnPallet(@Query("palletNo") pallet: String, @Query("task") taskName: String): Pallet
 
@@ -60,9 +62,6 @@ interface Api {
 
     @POST("market/tasks/updateTasksNew")
     suspend fun updateCheckBox(@Query("taskName") name: String, @Query("artikul") articul: Int, @Body data: MutableMap<String, String>): Universal
-
-    @GET("/market/tasks/searchArticulTask")
-    suspend fun getArticulTask(@Query("taskName") nameTask: String ,@Query("articul") articul: String): Article
 
     @PUT("/market/tasks/updateStatus")
     suspend fun changeStatus(@Body data: Status): Universal
@@ -84,7 +83,23 @@ interface Api {
 
     @POST("/market/tasks/cancel")
     suspend fun excludeArticle(@Query("taskName") name: String, @Query("articul") articule: Int, @Query("comment") comment: String, @Query("reason") reason: String): Universal
-    @GET("/article") suspend fun searchInDbForShk(@Query("shk") shk: String): ShkInDb
-    @GET("/article") suspend fun searchInDbForArticule(@Query("articul") articule: String): ShkInDb
+
+    @GET("/article")
+    suspend fun searchInDbForArticule(@Query("articul") articule: String): ShkInDb
+
+    @GET("/privyazka/getZapis")
+    suspend fun getBoxList(@Query("name") name: String, @Query("artikul") artikul: Int): WBBox
+
+    @POST("/privyazka/add")
+    suspend fun addBox(@Body data: AddBox): WBPrivyazka
+
+    @GET("/privyazka/checkSHKWps")
+    suspend fun checkWps(@Query("name") taskName: String, @Query("shk") shk: String): Universal
+
+    @POST("/privyazka/endStatus")
+    suspend fun endStatusWb(@Query("name") name: String, @Query("artikul") artikul: Int): WBBox
+
+    @POST("/privyazka/addSrokGodnosti")
+    suspend fun addSrokGodnostiForWb(@Body data: SrokGodnosti): Universal
 
 }

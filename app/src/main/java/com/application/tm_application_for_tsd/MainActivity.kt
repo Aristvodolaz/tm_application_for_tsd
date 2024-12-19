@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.AllInbox
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,16 +37,23 @@ import androidx.navigation.compose.rememberNavController
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.screen.AuthScreen
 import com.application.tm_application_for_tsd.screen.TaskScreen
+import com.application.tm_application_for_tsd.screen.edit.OzonEditScreen
 import com.application.tm_application_for_tsd.screen.ldu.AddLduScreen
 import com.application.tm_application_for_tsd.screen.ldu.LduScreen
 import com.application.tm_application_for_tsd.screen.navigation.ObraborkaScreen
 import com.application.tm_application_for_tsd.screen.navigation.PalletScreen
+import com.application.tm_application_for_tsd.screen.navigation.RedactorForMasterScreen
 import com.application.tm_application_for_tsd.screen.navigation.RedactorScreen
+import com.application.tm_application_for_tsd.screen.navigation.RedactorWBScreen
 import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.CheckShkScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoArticleScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoSyryoScreen
 import com.application.tm_application_for_tsd.screen.upakovka.OzonScreen
+import com.application.tm_application_for_tsd.screen.upakovka.wb.WBBoxScreen
+import com.application.tm_application_for_tsd.screen.upakovka.wb.WBListScreen
+import com.application.tm_application_for_tsd.screen.upakovka.wb.WBPalletScreen
+import com.application.tm_application_for_tsd.screen.upakovka.wb.WBVlozhScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 import com.application.tm_application_for_tsd.utils.DataWedgeManager
@@ -121,7 +130,8 @@ fun TSDApplication(
                     onNavigateToScanner = { navController.navigate("obrabotka") },
                     onNavigateToList = { navController.navigate("upakovka") },
                     onNavigateToSettings = { navController.navigate("redactor") },
-                    onNavigateToInfo = { navController.navigate("info") }
+                    onNavigateToInfo = { navController.navigate("info") },
+                    onNavigateToMaster = {navController.navigate("master")}
                 )
             }
         }
@@ -234,7 +244,9 @@ fun TSDApplication(
                             spHelper.getArticuleWork()!!,
                             spHelper.getTaskName()!!,
                             toNextScreen = {
-                                navController.navigate("set_in_box")
+//                                if(spHelper.getPref() == "WB")
+                                    navController.navigate("set_in_box_wb")
+//                                else navController.navigate("set_in_box")
                             }
                         )
                     }
@@ -245,8 +257,75 @@ fun TSDApplication(
                 OzonScreen(spHelper = spHelper)
             }
 
+            composable("set_in_box_wb"){
+                WBListScreen(spHelper = spHelper, toScanBox = {
+                    navController.navigate("scan_box_to_wb")
+                }, toDone ={
+                    navController.navigate("upakovka")
+                } )
+            }
+
+            composable("write_vlozh_to_wb"){
+                WBVlozhScreen(spHelper) {
+                    navController.navigate("scan_pallet_wb")
+                }
+            }
+
+            composable("scan_box_to_wb"){
+                WBBoxScreen(spHelper=spHelper, scanViewModel = scannerViewModel, toWriteVlozhennost = {
+                    Log.d("Navigation", "Navigating to write_vlozh_to_wb")
+                    navController.navigate("write_vlozh_to_wb")
+                }
+                )
+            }
+
+
+
+            composable("scan_pallet_wb"){
+                WBPalletScreen(spHelper = spHelper,scanViewModel = scannerViewModel,){
+                    navController.navigate("set_in_box_wb")
+                }
+            }
             composable("redactor") {
-                spHelper.getTaskName()?.let { RedactorScreen(taskName = spHelper.getTaskName()!!, scannerViewModel = scannerViewModel) } // Передаем SPHelper
+                spHelper.getTaskName()?.let { RedactorScreen(taskName = spHelper.getTaskName()!!, scannerViewModel = scannerViewModel,
+                    onClickArticle = {article ->
+                    spHelper.setArticuleWork(article.artikul.toString())
+                    spHelper.setShkWork(article.shk.toString())
+                    spHelper.setPref(article.pref.toString())
+                    spHelper.setNameStuffWork(article.nazvanieTovara.toString())
+                    navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
+                        val pref = article.pref.toString() == "WB"
+                        if(pref) navController.navigate("redactor_wb")
+                        else navController.navigate("redactor_other")
+                    })
+                }
+            }
+
+            composable("master"){
+                spHelper.getTaskName()
+                    ?.let { it1 -> RedactorForMasterScreen(it1,
+                        scannerViewModel = scannerViewModel,
+                        onClick = {
+                            navController.navigate("edit_ldu")
+                    }) }
+            }
+
+            composable("edit_ldu"){
+                spHelper.getTaskName()?.let { it1 ->
+                    AddLduScreen(
+                        spHelper.getArticuleWork()!!, it1,
+                        onSaveSuccess = {
+                            navController.navigate("master")
+                        })
+                }
+            }
+
+            composable("redactor_wb"){
+                RedactorWBScreen()
+            }
+
+            composable("redactor_other"){
+                OzonEditScreen()
             }
             composable("info") {
                 spHelper.getTaskName()?.let { PalletScreen(taskName = spHelper.getTaskName()!!) } // Передаем SPHelper
@@ -264,7 +343,8 @@ fun BottomNavigationBar(
     onNavigateToScanner: () -> Unit,
     onNavigateToList: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToInfo: () -> Unit
+    onNavigateToInfo: () -> Unit,
+    onNavigateToMaster: () -> Unit
 
 ) {
     NavigationBar(
@@ -293,6 +373,15 @@ fun BottomNavigationBar(
             icon = { Icon(Icons.Filled.EditNote, contentDescription = "redactor") },
             selected = currentDestination == "redactor",
             onClick = onNavigateToSettings,
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color.White, // Цвет выделенного фона
+            )
+        )
+
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.ManageAccounts, contentDescription = "master") },
+            selected = currentDestination == "master",
+            onClick = onNavigateToMaster,
             colors = NavigationBarItemDefaults.colors(
                 indicatorColor = Color.White, // Цвет выделенного фона
             )

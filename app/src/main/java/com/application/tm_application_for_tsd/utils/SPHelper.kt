@@ -13,6 +13,8 @@ class SPHelper(context: Context) {
         private const val NAME_STUFF_WORK = "name_stuff_work"
         private const val NAME_EMPLOYER = "name_employer"
         private const val PREF = "pref"
+        private const val SHK_BOX = "shk_box"
+        private const val VLOZHENNOST_BOX = "vlozh_box"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -75,7 +77,19 @@ class SPHelper(context: Context) {
     fun getPref(): String?{
         return sharedPreferences.getString(PREF, null)
     }
+    fun setVlozh(vlozh: Int){
+        sharedPreferences.edit().putInt(VLOZHENNOST_BOX, vlozh).apply()
+    }
+    fun getVlozh(): Int {
+        return sharedPreferences.getInt(VLOZHENNOST_BOX, 0)
+    }
 
+    fun setSHKBox(shk: String){
+        sharedPreferences.edit().putString(SHK_BOX, shk).apply()
+    }
+    fun getSHKBox(): String?{
+        return sharedPreferences.getString(SHK_BOX, null)
+    }
     // Clear all preferences
     fun clearPreferences() {
         sharedPreferences.edit().clear().apply()

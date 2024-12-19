@@ -47,6 +47,8 @@ fun InfoArticleScreen(
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
     var showExpirationDialog by remember { mutableStateOf(false) }
     var expirationPercentage by remember { mutableStateOf(0.0) }
+    var endDates by remember { mutableStateOf("") }
+
     // Обработка навигации
     LaunchedEffect(navigateToNext) {
         if (navigateToNext) {
@@ -96,14 +98,15 @@ fun InfoArticleScreen(
                                 val result = validateAndCalculateExpiration(startDate, endDate, durationInMonths)
                                 result?.let { (percentage, calculatedEndDate) ->
                                     expirationPercentage = percentage
+                                    endDates = calculatedEndDate
                                     if (percentage < 75) {
                                         showExpirationDialog = true
                                     } else {
+                                        if(spHelper.getPref()=="WB") viewModel.addSrokForWB(endDates)
                                         viewModel.addExpirationData(
                                             persent = "%.2f".format(percentage),
                                             endDate = calculatedEndDate
                                         )
-                                        Toast.makeText(context, "Осталось: ${"%.2f".format(percentage)}%", Toast.LENGTH_SHORT).show()
                                     }
                                 } ?: Toast.makeText(context, "Некорректные данные", Toast.LENGTH_SHORT).show()
                             } else {
@@ -137,8 +140,13 @@ fun InfoArticleScreen(
                     ShowExpirationDialog(
                         percentagePassed = expirationPercentage,
                         onConfirm = {
+                            if(spHelper.getPref()=="WB") viewModel.addSrokForWB(endDates)
+
+                            viewModel.addExpirationData(
+                                persent = "%.2f".format(expirationPercentage),
+                                endDate = endDates
+                            )
                             showExpirationDialog = false
-                            Toast.makeText(context, "Работа с товаром продолжена", Toast.LENGTH_SHORT).show()
                         },
                         onCancel = {
                             showExpirationDialog = false

@@ -51,7 +51,8 @@ import kotlinx.coroutines.launch
 fun RedactorScreen(
     taskName: String,
     viewModel: TaskViewModel = hiltViewModel(),
-    scannerViewModel: ScannerViewModel = hiltViewModel()
+    scannerViewModel: ScannerViewModel = hiltViewModel(),
+    onClickArticle:(Article.Articuls) -> Unit
 ) {
     var articles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var filteredArticles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
@@ -131,23 +132,9 @@ fun RedactorScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleRedactorCard(
+                        ArticleCard  (
                             article = article,
-                            onDelete = { selectedArticle ->
-                                // Удаление из списка
-                                selectedArticle.id?.let { selectedArticle.nazvanieZadaniya?.let { it1 ->
-                                    viewModel.deleteArticle(it,
-                                        it1
-                                    )
-                                } }
-                                Toast.makeText(
-                                    context,
-                                    "Удалено: ${selectedArticle.nazvanieTovara}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                articles = articles - selectedArticle
-                                filteredArticles = filteredArticles - selectedArticle
-                            }
+                           onClick = { onClickArticle(article)}
                         )
                     }
                 }
@@ -156,137 +143,3 @@ fun RedactorScreen(
     }
 }
 
-
-@Composable
-fun confirmDeletion(
-    article: Article.Articuls,
-    viewModel: TaskViewModel,
-    context: Context,
-    onDeleteConfirmed: () -> Unit
-) {
-    var showDialog by remember { mutableStateOf(true) }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Подтверждение удаления") },
-            text = { Text("Вы уверены, что хотите удалить ${article.nazvanieTovara}?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    article.id?.let { article.nazvanieZadaniya?.let { it1 ->
-                        viewModel.deleteArticle(it,
-                            it1
-                        )
-                    } }
-                    Toast.makeText(context, "Удалено: ${article.nazvanieTovara}", Toast.LENGTH_SHORT).show()
-                    onDeleteConfirmed()
-                    showDialog = false
-                }) {
-                    Text("Удалить")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Отмена")
-                }
-            }
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ArticleRedactorCard(
-    article: Article.Articuls,
-    onDelete: (Article.Articuls) -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
-        ),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.elevatedCardElevation(4.dp)
-
-    ) {
-        Box(modifier = Modifier.padding(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Столбец с информацией об артикуле
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = article.nazvanieTovara ?: "Не указано",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Артикул: ${article.artikul ?: "Не указан"}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    if (!article.artikulSyrya.isNullOrEmpty()) {
-                        Text(
-                            text = "Артикул сырья: ${article.artikulSyrya}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
-                    }
-                    Text(
-                        text = "ШК: ${article.shk ?: "Не указан"}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    if (!article.shkSyrya.isNullOrEmpty()) {
-                        Text(
-                            text = "ШК сырья: ${article.shkSyrya}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
-                    }
-                }
-
-                // Иконка удаления
-                IconButton(
-                    onClick = { showDialog = true },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
-                        contentDescription = "Удалить",
-                        tint = Color.Red
-                    )
-                }
-            }
-
-            // Показываем диалог подтверждения удаления
-            if (showDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onDelete(article) // Вызов обработчика удаления
-                            showDialog = false
-                        }) {
-                            Text("Удалить", color = Color.Red)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Отмена")
-                        }
-                    },
-                    title = { Text("Удаление") },
-                    text = { Text("Вы уверены, что хотите удалить этот элемент?") }
-                )
-            }
-        }
-    }
-}

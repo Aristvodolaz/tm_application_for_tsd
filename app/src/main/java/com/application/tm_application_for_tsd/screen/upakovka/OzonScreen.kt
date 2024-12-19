@@ -58,7 +58,6 @@ fun OzonScreen(
     var showIsklDialog by remember { mutableStateOf(false) } // Для отображения диалога
 
     val context = LocalContext.current
-
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
 
     val snackbarHostState = remember { SnackbarHostState() }

@@ -11,13 +11,10 @@ import com.application.tm_application_for_tsd.network.request_response.Status
 import com.application.tm_application_for_tsd.network.request_response.UpdateSrokGodnosti
 import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -112,7 +109,21 @@ class InfoArticleViewModel @Inject constructor(
 
 
 
+    fun sendSrokForWB(date: String){
+        viewModelScope.launch {
+            try {
+                val response = spHelper.getTaskName()
+                    ?.let { SrokGodnosti(it, spHelper.getArticuleWork()!!.toInt(), date) }
+                    ?.let { api.addSrokGodnostiForWb(it) }
 
+                if(response!!.success){
+                    _state.value = _state.value.copy(successMessage = "Срок годности успешно обновлен!")
+                }
+            }catch (e: Exception) {
+                _state.value = _state.value.copy(errorMessage = "Ошибка: ${e.localizedMessage}")
+            }
+        }
+    }
 
     private fun updateState(
         isLoading: Boolean = false,
