@@ -15,6 +15,8 @@ class SPHelper(context: Context) {
         private const val PREF = "pref"
         private const val SHK_BOX = "shk_box"
         private const val VLOZHENNOST_BOX = "vlozh_box"
+        private const val SHK_PALLET = "shk_pallet"
+        private const val ID = "id"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -84,11 +86,25 @@ class SPHelper(context: Context) {
         return sharedPreferences.getInt(VLOZHENNOST_BOX, 0)
     }
 
+    fun setId(id: Long){
+        sharedPreferences.edit().putLong(ID, id).apply()
+    }
+    fun getId(): Long {
+        return sharedPreferences.getLong(ID, 0)
+    }
+
     fun setSHKBox(shk: String){
         sharedPreferences.edit().putString(SHK_BOX, shk).apply()
     }
     fun getSHKBox(): String?{
         return sharedPreferences.getString(SHK_BOX, null)
+    }
+
+    fun setSHKPallet(shk: String){
+        sharedPreferences.edit().putString(SHK_PALLET, shk).apply()
+    }
+    fun getSHKPallet(): String?{
+        return sharedPreferences.getString(SHK_PALLET, null)
     }
     // Clear all preferences
     fun clearPreferences() {

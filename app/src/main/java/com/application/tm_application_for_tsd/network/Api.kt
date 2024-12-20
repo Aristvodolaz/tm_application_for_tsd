@@ -19,6 +19,7 @@ import com.application.tm_application_for_tsd.network.request_response.UpdateSro
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxRequest
 import com.application.tm_application_for_tsd.network.request_response.ValidateBoxResponse
 import com.application.tm_application_for_tsd.network.request_response.WBBox
+import com.application.tm_application_for_tsd.network.request_response.WBData
 import com.application.tm_application_for_tsd.network.request_response.WBPrivyazka
 import retrofit2.Response
 import retrofit2.http.Body
@@ -101,5 +102,12 @@ interface Api {
 
     @POST("/privyazka/addSrokGodnosti")
     suspend fun addSrokGodnostiForWb(@Body data: SrokGodnosti): Universal
+
+    @GET("/privyazka/getData")
+    suspend fun getDataWb(@Query("name") name: String): WBData
+
+    @POST("/send/updateNew")
+    suspend fun updateOzon(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
+                           @Query("palletNo") palletNo: Int): Universal
 
 }
