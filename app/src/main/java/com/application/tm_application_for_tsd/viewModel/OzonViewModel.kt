@@ -102,15 +102,15 @@ class OzonViewModel @Inject constructor(
             }
         }
     }
-    fun excludeArticle(reason: String, comment: String) {
+    fun excludeArticle(id: Long, reason: String, comment: String, size: Int) {
         viewModelScope.launch {
             try {
                 val response = spHelper.getArticuleWork()?.toInt()?.let {
                     api.excludeArticle(
-                        spHelper.getTaskName() ?: "",
-                        it,
+                        id,
                         reason,
-                        comment
+                        comment,
+                        size
                     )
                 }
                 if (response!!.success) {

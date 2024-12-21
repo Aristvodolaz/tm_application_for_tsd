@@ -19,11 +19,15 @@ import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddLduScreen(artikul: String, taskName: String, onSaveSuccess: () -> Unit, viewModel: LduViewModel = hiltViewModel()){
+fun AddLduScreen(
+    id: Long,
+    onSaveSuccess: () -> Unit,
+    viewModel: LduViewModel = hiltViewModel(),
+   ){
     val uiState = viewModel.uiState.collectAsState().value
 
     LaunchedEffect(Unit) {
-        viewModel.loadLduData(artikul, taskName)
+        viewModel.loadLduData(id)
     }
 
     Scaffold(
@@ -55,7 +59,7 @@ fun AddLduScreen(artikul: String, taskName: String, onSaveSuccess: () -> Unit, v
         bottomBar = {
             if (uiState is LduViewModel.UiState.Loaded) {
                 AddLduBottomBar {
-                    viewModel.saveActions(artikul.toInt(), taskName) { onSaveSuccess() }
+                    viewModel.saveActions (id) { onSaveSuccess() }
                 }
             }
         }

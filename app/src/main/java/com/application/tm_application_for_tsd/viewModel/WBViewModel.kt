@@ -88,26 +88,32 @@ class WBViewModel @Inject constructor(
         }
     }
 
+    fun updateData(id: Long, vlozh: Int, pallet: String){
+        viewModelScope.launch {
+            try{
+                val response = api.updateWB(id, pallet, vlozh)
+                if(response.success){
+                    _uiState.value = UiState.Success
+                }else _uiState.value = UiState.Error("Ошибка добавления короба")
+
+            }catch (e: Exception) {
+                _uiState.value = UiState.Error("Ошибка добавления короба: ${e.message}")
+            }
+        }
+    }
+
     fun closeTask() {
         viewModelScope.launch {
             try {
-                val taskName = spHelper.getTaskName() ?: "Unknown Task"
-                val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
-
-                if (artikul == -1) {
-                    _uiState.value = UiState.Error("Invalid artikul")
-                    return@launch
-                }
-
-                api.endStatusWb(taskName, artikul)
-                _uiState.value = UiState.Loading // Reset UI state after closing the task
+                api.endStatusWb(spHelper.getId())
+                _uiState.value = UiState.Success // Reset UI state after closing the task
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Failed to close task: ${e.message}")
             }
         }
     }
 
-    fun excludeArticle(reason: String, comment: String) {
+    fun excludeArticle(id: Long, reason: String, comment: String, count: Int) {
         viewModelScope.launch {
             try {
                 val taskName = spHelper.getTaskName() ?: "Unknown Task"
@@ -118,7 +124,7 @@ class WBViewModel @Inject constructor(
                     return@launch
                 }
 
-                api.excludeArticle(taskName, artikul, reason, comment)
+                api.excludeArticle(id, reason, comment, count)
                 _uiState.value = UiState.Loading // Reset UI state after excluding article
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Failed to exclude article: ${e.message}")

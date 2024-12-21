@@ -11,17 +11,11 @@ import com.application.tm_application_for_tsd.network.request_response.PalletLis
 import com.application.tm_application_for_tsd.network.request_response.ShkInDb
 import com.application.tm_application_for_tsd.network.request_response.Sklad
 import com.application.tm_application_for_tsd.network.request_response.SrokGodnosti
-import com.application.tm_application_for_tsd.network.request_response.Status
 import com.application.tm_application_for_tsd.network.request_response.Task
 import com.application.tm_application_for_tsd.network.request_response.Universal
-import com.application.tm_application_for_tsd.network.request_response.UpdateShk
-import com.application.tm_application_for_tsd.network.request_response.UpdateSrokGodnosti
-import com.application.tm_application_for_tsd.network.request_response.ValidateBoxRequest
-import com.application.tm_application_for_tsd.network.request_response.ValidateBoxResponse
 import com.application.tm_application_for_tsd.network.request_response.WBBox
 import com.application.tm_application_for_tsd.network.request_response.WBData
 import com.application.tm_application_for_tsd.network.request_response.WBPrivyazka
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -31,8 +25,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface Api {
-    @POST("/api/tm/validateBox")
-    suspend fun checkValidateBox(@Body barcodeData: ValidateBoxRequest): Response<ValidateBoxResponse>
 
     @GET("/api/employee/{id}")
     suspend fun getEmployeeDetails(@Path("id") id: String): EmployeeResponse
@@ -55,26 +47,27 @@ interface Api {
     @GET("/market/tasks/searchShk")
     suspend fun getShk(@Query("taskName") nameTask: String, @Query("shk") shk: String): Article
 
-    @GET("/market/tasks/getLDU")
-    suspend fun getLDU(@Query("artikul") articul: Int , @Query("name") name: String): ChooseOp
+    @GET("/market/new/getLdu")
+    suspend fun getLDU(@Query("id") id: Long): ChooseOp
 
     @DELETE("/market/tasks/deleteRecord")
     suspend fun deleteRecord(@Query("id") id: Long , @Query("task") name: String): ChooseOp
 
-    @POST("market/tasks/updateTasksNew")
-    suspend fun updateCheckBox(@Query("taskName") name: String, @Query("artikul") articul: Int, @Body data: MutableMap<String, String>): Universal
+    @POST("market/new/updateLdu")
+    suspend fun updateCheckBox(@Query("id") id: Long, @Body data: MutableMap<String, String>): Universal
 
-    @PUT("/market/tasks/updateStatus")
-    suspend fun changeStatus(@Body data: Status): Universal
+    @PUT("/market/new/getWork")
+    suspend fun changeStatus(@Query("id") id: Long, @Query("status") status: Int,
+                             @Query("startTime") startTime: String, @Query("ispolnitel") ispolnitel: String): Universal
 
     @POST("/privyazka/addSrokGodnosti")
     suspend fun addSrokGodnosti(@Body data: SrokGodnosti): Universal
 
-    @POST("/srok")
-    suspend fun sendSrokGodnosti(@Body data: UpdateSrokGodnosti) : Universal
+    @POST("/srok/updateNew")
+    suspend fun sendSrokGodnosti(@Query("id") id: Long, @Query("srokGodnosti") srokGodnosti: String,@Query("persent") persent: String ) : Universal
 
-    @POST("/market/tasks/recordNewShk")
-    suspend fun updateShk(@Body data: UpdateShk): Universal
+    @PUT("/market/new/updateShk")
+    suspend fun updateShk(@Query("id") id: Long, @Query("newSHK") newSHK: String): Universal
 
     @POST("/send/update")
     suspend fun finishedSend(@Body data: FinishOzon): Universal
@@ -82,8 +75,8 @@ interface Api {
     @POST("/market/tasks/duplicate")
     suspend fun getDuplicate(@Body data: Duplicate): Universal
 
-    @POST("/market/tasks/cancel")
-    suspend fun excludeArticle(@Query("taskName") name: String, @Query("articul") articule: Int, @Query("comment") comment: String, @Query("reason") reason: String): Universal
+    @POST("/market/new/closeTask")
+    suspend fun excludeArticle(@Query("id") id: Long, @Query("reason") reason: String, @Query("comment") comment: String, @Query("count") count: Int): Universal
 
     @GET("/article")
     suspend fun searchInDbForArticule(@Query("articul") articule: String): ShkInDb
@@ -97,8 +90,8 @@ interface Api {
     @GET("/privyazka/checkSHKWps")
     suspend fun checkWps(@Query("name") taskName: String, @Query("shk") shk: String): Universal
 
-    @POST("/privyazka/endStatus")
-    suspend fun endStatusWb(@Query("name") name: String, @Query("artikul") artikul: Int): WBBox
+    @POST("/privyazka/endStatusNew")
+    suspend fun endStatusWb(@Query("id") id: Long): WBBox
 
     @POST("/privyazka/addSrokGodnosti")
     suspend fun addSrokGodnostiForWb(@Body data: SrokGodnosti): Universal
@@ -109,5 +102,14 @@ interface Api {
     @POST("/send/updateNew")
     suspend fun updateOzon(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
                            @Query("palletNo") palletNo: Int): Universal
+
+    @POST("/market/tasks/updateStatusForID")
+    suspend fun updateStatus(@Query("id") id: Long, @Query("status") status: Int): Universal
+
+    @POST("/privyazka/udpateWBNew")
+    suspend fun updateWB(@Query("id") id: Long, @Query("pallet") pallet: String, @Query("kolvo") kolvo: Int): Universal
+
+    @POST("/market/otkaz/")
+    suspend fun setFactSize(@Query("id") id: Long, @Query("count") count: Int): Universal
 
 }

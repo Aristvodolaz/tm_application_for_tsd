@@ -17,8 +17,7 @@ import com.application.tm_application_for_tsd.viewModel.LduViewModel
 
 @Composable
 fun LduScreen(
-    artikul: String,
-    taskName: String,
+    id: Long,
     viewModel: LduViewModel = hiltViewModel(),
     toNextScreen: () -> Unit
 ) {
@@ -26,7 +25,7 @@ fun LduScreen(
 
     // Загружаем данные при первом отображении экрана
     LaunchedEffect(Unit) {
-        viewModel.loadLduData(artikul, taskName)
+        viewModel.loadLduData(id)
     }
 
     Scaffold(

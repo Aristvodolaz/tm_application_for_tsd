@@ -1,14 +1,10 @@
 package com.application.tm_application_for_tsd.viewModel
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.tm_application_for_tsd.network.Api
 import com.application.tm_application_for_tsd.network.request_response.SrokGodnosti
-import com.application.tm_application_for_tsd.network.request_response.Status
-import com.application.tm_application_for_tsd.network.request_response.UpdateSrokGodnosti
 import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -17,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 @HiltViewModel
 class InfoArticleViewModel @Inject constructor(
@@ -32,13 +27,14 @@ class InfoArticleViewModel @Inject constructor(
     val navigateToNextScreen: StateFlow<Boolean> = _navigateToNextScreen
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun changeStatusTask(article: String, status: Int) {
+    fun changeStatusTask() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
                 val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
-                val taskName = spHelper.getTaskName() ?: throw IllegalStateException("Task name not found")
-                val response = api.changeStatus(Status(taskName, article, currentDateTime, status, "TEST"))
+                val response = api.changeStatus(spHelper.getId(), 1, currentDateTime,
+                   " spHelper.getNameEmployer()!!"
+                )
 
                 if (response.success) {
                     _state.value = _state.value.copy(
@@ -64,14 +60,8 @@ class InfoArticleViewModel @Inject constructor(
     fun addExpirationData(persent: String, endDate: String) {
         viewModelScope.launch {
             try {
-                val response = api.sendSrokGodnosti(
-                    UpdateSrokGodnosti(
-                        srok = endDate,
-                        persent = persent,
-                        articul = spHelper.getArticuleWork() ?: "",
-                        taskName = spHelper.getTaskName() ?: ""
-                    )
-                )
+                val response = api.sendSrokGodnosti(spHelper.getId(), endDate, persent)
+
                 if (response.success) {
                     if(spHelper.getPref()=="WB"){
                         addSrokForWB(endDate)
@@ -147,15 +137,15 @@ class InfoArticleViewModel @Inject constructor(
         _navigateToNextScreen.value = false
     }
 
-    fun excludeArticle(reason: String, comment: String) {
+    fun excludeArticle(reason: String, comment: String, count: Int) {
         viewModelScope.launch {
             try {
                 val response = spHelper.getArticuleWork()?.toInt()?.let {
                     api.excludeArticle(
-                        spHelper.getTaskName() ?: "",
-                        it,
+                        spHelper.getId(),
                         reason,
-                        comment
+                        comment,
+                        count
                     )
                 }
                 if (response!!.success) {

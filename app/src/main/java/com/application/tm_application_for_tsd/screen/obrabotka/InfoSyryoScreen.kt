@@ -93,7 +93,7 @@ fun InfoSyryoScreen (
                 if (!showExpirationButton) {
                     Button(
                         onClick = {
-                            viewModel.changeStatusTask(article.artikul.toString(), 1)
+                            viewModel.changeStatusTask()
                             showExpirationButton = true
                         },
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
@@ -162,7 +162,7 @@ fun InfoSyryoScreen (
                         reasons = reasons,
                         onDismiss = { showIsklDialog = false },
                         onConfirm = { reason, comment, size ->
-                            viewModel.excludeArticle(reason, comment) // todo сюда надо добавить количество
+                            viewModel.excludeArticle(reason, comment, size.toInt()) // todo сюда надо добавить количество
                             showIsklDialog = false
                         }
                     )

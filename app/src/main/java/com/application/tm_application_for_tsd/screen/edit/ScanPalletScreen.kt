@@ -30,7 +30,7 @@ fun ScanPalletScreen(wbViewModel: WBViewModel = hiltViewModel(),
     LaunchedEffect(scanInput) {
         if (scanInput.isNotEmpty()) {
             spHelper.setSHKPallet(scanInput)
-            spHelper.getSHKBox()?.let { wbViewModel.addBox(spHelper.getVlozh(), it, scanInput) }
+            spHelper.getSHKBox()?.let { wbViewModel.updateData(spHelper.getId(), spHelper.getVlozh(), scanInput) }
             scanViewModel.clearBarcode() // Сброс после обработки
         }
     }

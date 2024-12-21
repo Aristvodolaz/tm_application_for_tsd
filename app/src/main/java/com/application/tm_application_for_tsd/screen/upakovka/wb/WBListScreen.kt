@@ -154,7 +154,7 @@ fun WBListScreen(
                     reasons = reasons,
                     onDismiss = { showExcludeDialog = false },
                     onConfirm = { reason, comment, size ->
-                        wbViewModel.excludeArticle(reason, comment) // todo сюда надо добавить количество
+                        wbViewModel.excludeArticle(spHelper.getId(),reason, comment, size.toInt()) // todo сюда надо добавить количество
                         showExcludeDialog = false
                     }
                 )

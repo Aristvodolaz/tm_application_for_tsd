@@ -20,12 +20,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 @Composable
 fun AuthScreen(
     navController: NavController,
     scannerViewModel: ScannerViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    spHelper: SPHelper
 ) {
 
     // Состояния
@@ -36,7 +38,6 @@ fun AuthScreen(
 
     Log.d("AuthScreen", "Current barcodeData: $barcodeData")
 
-    // Обработка изменения barcodeData
     LaunchedEffect(barcodeData) {
         if (barcodeData.isNotEmpty()) {
             Log.d("AuthScreen", "Authenticating barcode: $barcodeData")
@@ -46,11 +47,11 @@ fun AuthScreen(
         }
     }
 
-    // Обработка состояния авторизации
     LaunchedEffect(authState) {
         when (authState) {
             is AuthViewModel.AuthState.Success -> {
                 val username = (authState as AuthViewModel.AuthState.Success).username
+                spHelper.setNameEmployer(username)
                 Log.d("AuthScreen", "Authentication success. Navigating to home: $username")
                 navController.navigate("task") {
                     popUpTo("auth") { inclusive = true }

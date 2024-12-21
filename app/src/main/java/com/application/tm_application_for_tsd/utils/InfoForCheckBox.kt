@@ -19,7 +19,16 @@ object InfoForCheckBox {
         "Оп 17 ТУ 6-8",
         "Оп 468 проверка ШК",
         "Оп 469 Спецификация ТМ",
-        "Оп 470 доп. упаковка"
+        "Оп 470 доп. упаковка",
+        "Сортируемый товар",  // Новая строка
+        "Не сортируемый товар",  // Новая строка
+        "Продукты",  // Новая строка
+        "Опасный товар",  // Новая строка
+        "Закрытая зона",  // Новая строка
+        "Крупногабаритный товар",  // Новая строка
+        "Ювелирные изделия",  // Новая строка
+        "Печать этикетки с ШК",  // Новая строка
+        "Печать этикетки с описанием",  // Новая строка
     )
 
     val infoBoxToDB: Array<String> = arrayOf(
@@ -40,6 +49,15 @@ object InfoForCheckBox {
         "Op_17_TU_6_8",
         "Op_468_Proverka_SHK",
         "Op_469_Spetsifikatsiya_TM",
-        "Op_470_Dop_Upakovka"
+        "Op_470_Dop_Upakovka",
+        "Sortiruemyi_Tovar",  // Новая строка
+        "Ne_Sortiruemyi_Tovar",  // Новая строка
+        "Produkty",  // Новая строка
+        "Opasnyi_Tovar",  // Новая строка
+        "Zakrytaya_Zona",  // Новая строка
+        "Krupnogabaritnyi_Tovar",  // Новая строка
+        "Yuvelirnye_Izdelia",  // Новая строка
+        "Pechat_Etiketki_s_SHK",  // Новая строка
+        "Pechat_Etiketki_s_Opisaniem",  // Новая строка
     )
 }

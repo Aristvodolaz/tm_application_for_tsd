@@ -10,15 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 @HiltViewModel
 class RedactorWBViewModel @Inject constructor(
-    val api: Api,
+    private val api: Api
 ) : ViewModel() {
     sealed class UiState {
         object Loading : UiState()
         data class Success(val items: List<WBItem>) : UiState()
         data class Error(val message: String) : UiState()
+        object Empty : UiState() // New state for empty results
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
@@ -30,12 +30,16 @@ class RedactorWBViewModel @Inject constructor(
             try {
                 val response = api.getDataWb(task)
                 if (response.success) {
-                    _uiState.value = UiState.Success(response.value)
+                    if (response.value.isNullOrEmpty()) {
+                        _uiState.value = UiState.Empty
+                    } else {
+                        _uiState.value = UiState.Success(response.value)
+                    }
                 } else {
-                    _uiState.value = UiState.Error("Unknown error")
+                    _uiState.value = UiState.Error("An unknown error occurred.")
                 }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to fetch data: ${e.message}")
+                _uiState.value = UiState.Error("Failed to fetch data: ${e.localizedMessage}")
             }
         }
     }

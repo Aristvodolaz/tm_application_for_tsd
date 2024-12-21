@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.screen.AuthScreen
@@ -41,6 +42,7 @@ import com.application.tm_application_for_tsd.screen.edit.OzonEditScreen
 import com.application.tm_application_for_tsd.screen.edit.ScanPalletScreen
 import com.application.tm_application_for_tsd.screen.edit.WBEditScreen
 import com.application.tm_application_for_tsd.screen.ldu.AddLduScreen
+import com.application.tm_application_for_tsd.screen.ldu.EditLduScreen
 import com.application.tm_application_for_tsd.screen.ldu.LduScreen
 import com.application.tm_application_for_tsd.screen.navigation.ObraborkaScreen
 import com.application.tm_application_for_tsd.screen.navigation.PalletScreen
@@ -147,7 +149,8 @@ fun TSDApplication(
                 AuthScreen(
                     navController = navController,
                     scannerViewModel = scannerViewModel,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    spHelper
                 )
             }
             composable("task") {
@@ -170,6 +173,7 @@ fun TSDApplication(
                             spHelper.setArticuleWork(article.artikul.toString())
                             spHelper.setShkWork(article.shk.toString())
                             spHelper.setPref(article.pref.toString())
+                            article.id?.let { it1 -> spHelper.setId(it1) }
                             spHelper.setNameStuffWork(article.nazvanieTovara.toString())
                             navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
                             val destination = if (article.kolVoSyrya != null) {
@@ -187,6 +191,7 @@ fun TSDApplication(
             composable("info_syryo_screen"){
                 val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
+                    article.id?.let { spHelper.setId(it) }
                     InfoSyryoScreen(spHelper = spHelper, article = article, viewModel = articleViewModel,
                         onNavigateToNext = {
                             navController.navigate("write_ldu")
@@ -198,6 +203,7 @@ fun TSDApplication(
             composable("info_article_screen") { backStackEntry ->
                 val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
+                    article.id?.let { spHelper.setId(it) }
                     InfoArticleScreen(spHelper = spHelper, article = article, viewModel = articleViewModel,
                         onNavigateToNext = {
                             navController.navigate("check_shk")
@@ -214,7 +220,8 @@ fun TSDApplication(
             }
 
             composable("write_ldu"){
-                spHelper.getTaskName()?.let { AddLduScreen(spHelper.getArticuleWork()!!, it,{
+                spHelper.getTaskName()?.let { AddLduScreen( id =  spHelper.getId(),
+                    onSaveSuccess = {
                     navController.navigate("obrabotka")
                 }) }
             }
@@ -228,6 +235,8 @@ fun TSDApplication(
                             spHelper.setArticuleWork(article.artikul.toString())
                             spHelper.setShkWork(article.shk.toString())
                             spHelper.setPref(article.pref.toString())
+                            article.id?.let { it2 -> spHelper.setId(it2) }
+
                             spHelper.setNameStuffWork(article.nazvanieTovara.toString())
                             navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
                             navController.navigate("upakovka_article_screen")
@@ -237,15 +246,17 @@ fun TSDApplication(
             composable("upakovka_article_screen") {
                 val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
+                    article.id?.let { it1 -> spHelper.setId(it1.toLong()) }
                     spHelper.getTaskName()?.let {
-                        LduScreen(
-                            spHelper.getArticuleWork()!!,
-                            spHelper.getTaskName()!!,
-                            toNextScreen = {
-                                if(spHelper.getPref() == "WB") navController.navigate("set_in_box_wb")
-                                else navController.navigate("set_in_box")
-                            }
-                        )
+                        article.id?.let { it1 ->
+                            LduScreen(
+                                it1,
+                                toNextScreen = {
+                                    if(spHelper.getPref() == "WB") navController.navigate("set_in_box_wb")
+                                    else navController.navigate("set_in_box")
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -284,7 +295,16 @@ fun TSDApplication(
                 }
             }
             composable("redactor") {
-                if(spHelper.getPref() == "WB") navController.navigate("redactor_wb")
+                if(spHelper.getPref() == "WB") {
+                    spHelper.getTaskName()?.let { it1 ->
+                        RedactorWBScreen(spHelper = spHelper, taskName = it1, onClick = {
+                            spHelper.setSHKPallet(it.pallet)
+                            spHelper.setSHKBox(it.shk)
+                            spHelper.setId(it.id)
+                            navController.navigate("wb_edit_screen")
+                        })
+                    }
+                }
                  else {
                     spHelper.getTaskName()?.let {
                         RedactorScreen(taskName = spHelper.getTaskName()!!,
@@ -310,39 +330,34 @@ fun TSDApplication(
                     ?.let { it1 -> RedactorForMasterScreen(it1,
                         scannerViewModel = scannerViewModel,
                         onClick = {
+                            it.id?.let { it2 -> spHelper.setId(it2) }
                             navController.navigate("edit_ldu")
                     }) }
             }
 
             composable("edit_ldu"){
                 spHelper.getTaskName()?.let { it1 ->
-                    AddLduScreen(
-                        spHelper.getArticuleWork()!!, it1,
-                        onSaveSuccess = {
+                    EditLduScreen(
+                        spHelper.getId(),
+                        toDone = {
                             navController.navigate("master")
-                        })
+                        }
+                    )
                 }
             }
 
-            composable("redactor_wb"){
-                spHelper.getTaskName()?.let { it1 ->
-                    RedactorWBScreen(spHelper = spHelper, taskName = it1, onClick = {
-                        spHelper.setSHKPallet(it.pallet)
-                        spHelper.setSHKBox(it.shk)
-                        navController.navigate("wb_edit_screen")
-                    })
-                }
-            }
 
             composable("wb_edit_screen"){
                 WBEditScreen(spHelper = spHelper, toScanPallet = {
                     navController.navigate("to_scan_pallet_screen_edit_wb")
+                }, toDone = {
+                    navController.navigate("redactor")
                 } )
             }
 
             composable("to_scan_pallet_screen_edit_wb"){
                 ScanPalletScreen(scanViewModel = scannerViewModel, spHelper = spHelper, toDone = {
-                    navController.navigate("redactor_wb")
+                    navController.navigate("redactor")
                 })
             }
 

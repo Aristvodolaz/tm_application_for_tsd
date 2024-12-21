@@ -6,10 +6,3 @@ data class SrokGodnosti (
     val artikul: Int,
     val srok_godnosti: String
 )
-
-data class UpdateSrokGodnosti(
-    @SerializedName("srokGodnosti") val srok: String,
-    @SerializedName("persent") val persent: String,
-    @SerializedName("articul") val articul: String,
-    @SerializedName("taskName") val taskName: String
-)

@@ -8,6 +8,7 @@ data class WBData(
     @SerializedName("errorCode") val code: Int
 )
 data class WBItem (
+    @SerializedName("ID") val id: Long,
     @SerializedName("Nazvanie_Zadaniya") val name: String,
     @SerializedName("Artikul") val  artikul: Int,
     @SerializedName("Srok_Godnosti") val sg: String,

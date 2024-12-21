@@ -1,21 +1,21 @@
 package com.application.tm_application_for_tsd.viewModel
 
+import androidx.compose.animation.core.spring
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
 import com.application.tm_application_for_tsd.utils.InfoForCheckBox
-import com.application.tm_application_for_tsd.viewModel.EditLduViewModel.UiState
+import com.application.tm_application_for_tsd.viewModel.LduViewModel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ActionItem(val name: String, var count: String)
-
 @HiltViewModel
-class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel() {
-
+class EditLduViewModel @Inject constructor(
+    val api: Api
+) : ViewModel(){
     sealed class UiState {
         object Loading : UiState()
         data class Loaded(val actions: List<ActionItem>) : UiState()
@@ -29,7 +29,7 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {
-                val response = apiService.getLDU(id)
+                val response = api.getLDU(id)
 
                 // Преобразование данных с сервера
                 val actions = InfoForCheckBox.infoBox.mapIndexed { index, name ->
@@ -100,11 +100,9 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
             }
         }
     }
-
-
-    fun saveActions( id: Long, onComplete: () -> Unit) {
+    fun saveActions(id: Long, onComplete: () -> Unit) {
         if (_uiState.value is UiState.Loaded) {
-            val actions = (_uiState.value as UiState.Loaded).actions
+            val actions = (_uiState.value as LduViewModel.UiState.Loaded).actions
 
             // Prepare request body with quantities
             val requestBody = mutableMapOf<String, String>().apply {
@@ -115,8 +113,8 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
 
             viewModelScope.launch {
                 try {
-                    apiService.updateCheckBox(id, requestBody)
-                    setStatus(id, 3) { onComplete() }
+                    api.updateCheckBox(id, requestBody)
+                    onComplete()
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error
                 }
@@ -124,16 +122,4 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
         }
     }
 
-    fun setStatus(id: Long, stats: Int, onComplete: () -> Unit){
-        viewModelScope.launch {
-            try{
-                val response = apiService.updateStatus(id, stats)
-                if(response.success){
-                    onComplete()
-                }
-            }catch (e: Exception) {
-                _uiState.value = UiState.Error
-            }
-        }
-    }
 }

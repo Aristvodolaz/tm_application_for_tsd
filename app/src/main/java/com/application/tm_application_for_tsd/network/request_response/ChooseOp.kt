@@ -71,5 +71,31 @@ data class LDUValue(
     val op469SpetsifikatsiyaTM: String? = null,
 
     @SerializedName("Op_470_Dop_Upakovka")
-    val op470DopUpakovka: String? = null
+    val op470DopUpakovka: String? = null,
+    @SerializedName("Sortiruemyi_Tovar")
+    val sortiruemyiTovar: String? = null,
+
+    @SerializedName("Ne_Sortiruemyi_Tovar")
+    val neSortiruemyiTovar: String? = null,
+
+    @SerializedName("Produkty")
+    val produkty: String? = null,
+
+    @SerializedName("Opasnyi_Tovar")
+    val opasnyiTovar: String? = null,
+
+    @SerializedName("Zakrytaya_Zona")
+    val zakrytayaZona: String? = null,
+
+    @SerializedName("Krupnogabaritnyi_Tovar")
+    val krupnogabaritnyiTovar: String? = null,
+
+    @SerializedName("Yuvelirnye_Izdelia")
+    val yuvelirnyeIzdelia: String? = null,
+
+    @SerializedName("Pechat_Etiketki_s_SHK")
+    val pechatEtiketkiSHK: String? = null,
+
+    @SerializedName("Pechat_Etiketki_s_Opisaniem")
+    val pechatEtiketkiOpisaniem: String? = null
 )

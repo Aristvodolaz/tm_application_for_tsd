@@ -9,7 +9,6 @@ import javax.inject.Inject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.tm_application_for_tsd.network.request_response.Article
-import com.application.tm_application_for_tsd.network.request_response.UpdateShk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -69,10 +68,7 @@ class CheckShkViewModel @Inject constructor(
     fun updateShk(shk: String){
         viewModelScope.launch {
             try {
-                val response = spHelper.getTaskName()
-                    ?.let { UpdateShk(it, spHelper.getArticuleWork()!!, shk) }
-                    ?.let { api.updateShk(it) }
-
+                val response = api.updateShk(spHelper.getId(), shk)
                 if(response!!.success){
                     updateState(successMessage = "ШК успешно перезаписан.", showRewriteDialog = false)
                 } else  updateState(errorMessage = "Ошибка перезаписи ШК.", showRewriteDialog = false)

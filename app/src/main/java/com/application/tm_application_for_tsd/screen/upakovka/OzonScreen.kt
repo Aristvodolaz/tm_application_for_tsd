@@ -188,7 +188,7 @@ fun OzonScreen(
                 reasons = reasons,
                 onDismiss = { showIsklDialog = false },
                 onConfirm = { reason, comment, size ->
-                    viewModel.excludeArticle(reason, comment) // todo сюда надо добавить количество
+                    viewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt()) // todo сюда надо добавить количество
                     showIsklDialog = false
                 }
             )

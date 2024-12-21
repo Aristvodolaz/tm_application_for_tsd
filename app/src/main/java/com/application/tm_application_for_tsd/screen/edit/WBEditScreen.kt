@@ -33,7 +33,8 @@ import com.application.tm_application_for_tsd.viewModel.WBViewModel
 fun WBEditScreen (
     spHelper: SPHelper,
     toScanPallet: () -> Unit,
-    wbViewModel: WBViewModel = hiltViewModel()
+    wbViewModel: WBViewModel = hiltViewModel(),
+    toDone: () -> Unit
 ) {
     var vlozhennost by remember { mutableStateOf("") }
     var isInputValid by remember { mutableStateOf(true) }
@@ -98,9 +99,12 @@ fun WBEditScreen (
         Button(
             onClick = {
                 spHelper.setVlozh(vlozhennost.toInt())
-                spHelper.getSHKPallet()
-                    ?.let { spHelper.getSHKBox()
-                        ?.let { it1 -> wbViewModel.addBox(vlozhennost.toInt(), it1, it) } }
+                spHelper.getSHKPallet()?.let {
+                    wbViewModel.updateData(spHelper.getId(), vlozh = vlozhennost.toInt(),
+                        it
+                    )
+                }
+                toDone()
             },
             enabled = vlozhennost.isNotEmpty() && isInputValid,
             modifier = Modifier
