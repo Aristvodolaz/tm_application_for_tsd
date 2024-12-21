@@ -1,5 +1,7 @@
 package com.application.tm_application_for_tsd.screen.edit
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.OzonEditViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OzonEditScreen(

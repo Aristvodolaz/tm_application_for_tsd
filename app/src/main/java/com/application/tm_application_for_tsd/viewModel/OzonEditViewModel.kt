@@ -1,5 +1,7 @@
 package com.application.tm_application_for_tsd.viewModel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
@@ -9,6 +11,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,10 +28,13 @@ class OzonEditViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun editItem(id: Long, vlozh: Int, mesto: Int, pallet: Int ){
         viewModelScope.launch {
             try{
-                val response = api.updateOzon(id, mesto, vlozh, pallet)
+                val currentDateTime = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
+                val response = api.updateOzon(id, mesto, vlozh, pallet, currentDateTime)
                 if(response.success){
                     _uiState.value = UiState.Success("Изменения сохранены!")
                 } else {

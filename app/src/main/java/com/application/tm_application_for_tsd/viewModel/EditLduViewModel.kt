@@ -100,9 +100,9 @@ class EditLduViewModel @Inject constructor(
             }
         }
     }
-    fun saveActions(id: Long, onComplete: () -> Unit) {
+    fun saveActions( id: Long, onComplete: () -> Unit) {
         if (_uiState.value is UiState.Loaded) {
-            val actions = (_uiState.value as LduViewModel.UiState.Loaded).actions
+            val actions = (_uiState.value as UiState.Loaded).actions
 
             // Prepare request body with quantities
             val requestBody = mutableMapOf<String, String>().apply {
@@ -114,10 +114,22 @@ class EditLduViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     api.updateCheckBox(id, requestBody)
-                    onComplete()
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error
                 }
+            }
+        }
+    }
+
+    fun setStatus(id: Long, stats: Int, onComplete: () -> Unit){
+        viewModelScope.launch {
+            try{
+                val response = api.updateStatus(id, stats)
+                if(response.success){
+                    onComplete()
+                }
+            }catch (e: Exception) {
+                _uiState.value = UiState.Error
             }
         }
     }

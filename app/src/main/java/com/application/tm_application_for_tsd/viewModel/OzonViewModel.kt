@@ -5,7 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
-import com.application.tm_application_for_tsd.network.request_response.Duplicate
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,16 +60,12 @@ class OzonViewModel @Inject constructor(
             try {
                 val currentDateTime = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
-                val response = api.finishedSend(
-                    FinishOzon(
-                        taskName = spHelper.getTaskName().orEmpty(),
-                        shk = spHelper.getShkWork().orEmpty(),
-                        mesto = _boxCount.value,
-                        vlozhennost = _vneshnost.value,
-                        palletNo = _palletNumber.value,
-                        timeEnd = currentDateTime
+                val response = api.updateOzon(id =  spHelper.getId(),
+                        mesto = _boxCount.value.toInt(),
+                        vlozhennost = _vneshnost.value.toInt(),
+                        palletNo = _palletNumber.value.toInt(),
+                        time = currentDateTime
                     )
-                )
                 if (response.success) {
                     _successMessage.value = "Данные успешно отправлены"
                 } else {
@@ -84,12 +79,12 @@ class OzonViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun saveNonStandardData(nested: String, place: String, pallet: String) {
         viewModelScope.launch {
             try {
-                val response = spHelper.getTaskName()
-                    ?.let { Duplicate(it,spHelper.getArticuleWork(), mesto = place, nested, pallet) }
-                    ?.let { api.getDuplicate(it) }
+                val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
+                val response =  api.getDuplicate(spHelper.getId(), place.toInt(), nested.toInt(), pallet.toInt(),currentDateTime )
                 // Логика сохранения нестандартных данных
 
                 if(response!!.success) _successMessage.value = "Нестандартная вложенность сохранена"

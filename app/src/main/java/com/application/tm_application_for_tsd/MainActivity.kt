@@ -331,6 +331,7 @@ fun TSDApplication(
                         scannerViewModel = scannerViewModel,
                         onClick = {
                             it.id?.let { it2 -> spHelper.setId(it2) }
+                            Log.d("COOOONTROLLER" , "DDDDD")
                             navController.navigate("edit_ldu")
                     }) }
             }
@@ -363,7 +364,7 @@ fun TSDApplication(
 
             composable("redactor_other"){
                 OzonEditScreen(spHelper = spHelper, onDone = {
-                    navController.navigate("")
+                    navController.navigate("master")
                 })
             }
             composable("info") {

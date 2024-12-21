@@ -47,14 +47,17 @@ fun CheckShkScreen(
     }
 
     if (state.showRewriteDialog) {
-        RewriteDialog(
-            onConfirm = {
-                checkShkViewModel.confirmRewriteShk(scanInput)
-            },
-            onDismiss = {
-                checkShkViewModel.cancelRewriteShk()
-            }
-        )
+        spHelper.getShkWork()?.let {
+            RewriteDialog(
+                shk = it,
+                onConfirm = {
+                    spHelper.getShkWork()?.let { checkShkViewModel.confirmRewriteShk(it) }
+                },
+                onDismiss = {
+                    checkShkViewModel.cancelRewriteShk()
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -113,11 +116,11 @@ fun MainContent(state: CheckShkState) {
 }
 
 @Composable
-fun RewriteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun RewriteDialog(shk: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Перезаписать ШК") },
-        text = { Text("ШК не найден. Перезаписать ШК в базе данных?") },
+        text = { Text("ШК не найден. Перезаписать ШК  $shk в базе данных?") },
         confirmButton = {
             Button(onClick = onConfirm) {
                 Text("Да")

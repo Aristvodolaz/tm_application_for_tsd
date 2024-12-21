@@ -3,7 +3,6 @@ package com.application.tm_application_for_tsd.network
 import com.application.tm_application_for_tsd.network.request_response.AddBox
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
-import com.application.tm_application_for_tsd.network.request_response.Duplicate
 import com.application.tm_application_for_tsd.network.request_response.EmployeeResponse
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.Pallet
@@ -72,8 +71,9 @@ interface Api {
     @POST("/send/update")
     suspend fun finishedSend(@Body data: FinishOzon): Universal
 
-    @POST("/market/tasks/duplicate")
-    suspend fun getDuplicate(@Body data: Duplicate): Universal
+    @PUT("/market/new/duplicate")
+    suspend fun getDuplicate(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
+                             @Query("palletNo") palletNo: Int , @Query("time") time: String): Universal
 
     @POST("/market/new/closeTask")
     suspend fun excludeArticle(@Query("id") id: Long, @Query("reason") reason: String, @Query("comment") comment: String, @Query("count") count: Int): Universal
@@ -101,7 +101,7 @@ interface Api {
 
     @POST("/send/updateNew")
     suspend fun updateOzon(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
-                           @Query("palletNo") palletNo: Int): Universal
+                           @Query("palletNo") palletNo: Int, @Query("time") time: String): Universal
 
     @POST("/market/tasks/updateStatusForID")
     suspend fun updateStatus(@Query("id") id: Long, @Query("status") status: Int): Universal

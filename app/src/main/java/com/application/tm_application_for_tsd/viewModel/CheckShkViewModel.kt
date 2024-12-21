@@ -34,6 +34,7 @@ class CheckShkViewModel @Inject constructor(
                     saveArticleData(articul)
                     updateState(successMessage = "Товар найден: ${articul.nazvanieTovara}", isLoading = false)
                 } else {
+                    spHelper.setShkWork(shk)
                     searchArticleInDb(spHelper.getArticuleWork().toString())
                 }
             } catch (e: Exception) {

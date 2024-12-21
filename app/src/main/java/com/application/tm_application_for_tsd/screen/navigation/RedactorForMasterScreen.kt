@@ -132,6 +132,7 @@ fun RedactorForMasterScreen (
                     items(filteredArticles) { article ->
                         ArticleRedactorCard(
                             article = article,
+                            onClicks = {onClick(it)},
                             onDelete = { selectedArticle ->
                                 // Удаление из списка
                                 selectedArticle.id?.let { selectedArticle.nazvanieZadaniya?.let { it1 ->
@@ -197,6 +198,7 @@ fun confirmDeletion(
 @Composable
 fun ArticleRedactorCard(
     article: Article.Articuls,
+    onClicks: (Article.Articuls) -> Unit,
     onDelete: (Article.Articuls) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -209,7 +211,8 @@ fun ArticleRedactorCard(
             containerColor = Color(0xFFFAFAFA)
         ),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.elevatedCardElevation(4.dp)
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        onClick ={ onClicks(article)}
 
     ) {
         Box(modifier = Modifier.padding(12.dp)) {
