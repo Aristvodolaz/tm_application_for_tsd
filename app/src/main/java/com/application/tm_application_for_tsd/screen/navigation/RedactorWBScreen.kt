@@ -4,11 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,11 +20,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.WBItem
 import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.RedactorWBViewModel
@@ -67,23 +75,105 @@ fun RedactorWBScreen(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     items(items) { item ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onClick(item) }
-                                .padding(8.dp),
-                            elevation = CardDefaults.elevatedCardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Text(text = "Артикул: ${item.artikul}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                Text(text = "Паллет: ${item.pallet}", fontSize = 14.sp)
-                                Text(text = "Короб: ${item.shk}", fontSize = 14.sp)
-                                Text(text = "Вложенность: ${item.kolvo}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
+                        ArticleRedactorForWBCard(item, onClicks = {
+                            onClick(item)
+                        }, onDelete = {
+                            redactorWBViewModel.deleteArticle(item.id, item.name)
+                        })
                     }
                 }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun ArticleRedactorForWBCard(
+    article: WBItem,
+    onClicks: (WBItem) -> Unit,
+    onDelete: (WBItem) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFAFAFA)
+        ),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        onClick ={ onClicks(article)}
+
+    ) {
+        Box(modifier = Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Столбец с информацией об артикуле
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = ("Aртикул: " + article.artikul.toString()) ?: "Не указано",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "ШК: ${article.shk ?: "Не указан"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Паллет: ${article.pallet ?: "Не указан"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                        Text(
+                            text = "Вложеноость: ${article.kolvo}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+
+                }
+
+                // Иконка удаления
+                IconButton(
+                    onClick = { showDialog = true },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                        contentDescription = "Удалить",
+                        tint = Color.Red
+                    )
+                }
+            }
+
+            // Показываем диалог подтверждения удаления
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDelete(article) // Вызов обработчика удаления
+                            showDialog = false
+                        }) {
+                            Text("Удалить", color = Color.Red)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Отмена")
+                        }
+                    },
+                    title = { Text("Удаление") },
+                    text = { Text("Вы уверены, что хотите удалить этот элемент?") }
+                )
             }
         }
     }

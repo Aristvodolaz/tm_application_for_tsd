@@ -12,10 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.application.tm_application_for_tsd.network.Api
-import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.EditLduViewModel
-import com.application.tm_application_for_tsd.viewModel.LduViewModel
 
 @Composable
 fun EditLduScreen (

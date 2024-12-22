@@ -114,6 +114,7 @@ class EditLduViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     api.updateCheckBox(id, requestBody)
+                    onComplete()
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error
                 }

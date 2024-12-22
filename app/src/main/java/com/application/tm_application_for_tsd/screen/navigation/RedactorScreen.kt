@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.tm_application_for_tsd.network.request_response.Article
+import com.application.tm_application_for_tsd.network.request_response.WBItem
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 import com.application.tm_application_for_tsd.viewModel.TaskViewModel
 import kotlinx.coroutines.launch
@@ -132,12 +133,114 @@ fun RedactorScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleCard  (
+                        ArticleRedactorForOzonCard  (
                             article = article,
-                           onClick = { onClickArticle(article)}
+                            onClicks = { onClickArticle(article)},
+                            onDelete = { article.nazvanieZadaniya?.let { it1 ->
+                                viewModel.deleteArticle(article.id!!.toLong(),
+                                    it1
+                                )
+                            } }
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+
+
+
+@Composable
+fun ArticleRedactorForOzonCard(
+    article: Article.Articuls,
+    onClicks: (Article.Articuls) -> Unit,
+    onDelete: (Article.Articuls) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFAFAFA)
+        ),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        onClick ={ onClicks(article)}
+
+    ) {
+        Box(modifier = Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Столбец с информацией об артикуле
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = ("Название: " + article.artikul.toString()) ?: "Не указано",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Ариткул: ${article.artikul ?: "Не указан"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Паллет: ${article.palletNo ?: "Не указан"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Место: ${article.mesto ?: "Не указан"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Вложеноость: ${article.vlozhennost}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+
+                }
+
+                // Иконка удаления
+                IconButton(
+                    onClick = { showDialog = true },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                        contentDescription = "Удалить",
+                        tint = Color.Red
+                    )
+                }
+            }
+
+            // Показываем диалог подтверждения удаления
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDelete(article) // Вызов обработчика удаления
+                            showDialog = false
+                        }) {
+                            Text("Удалить", color = Color.Red)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Отмена")
+                        }
+                    },
+                    title = { Text("Удаление") },
+                    text = { Text("Вы уверены, что хотите удалить этот элемент?") }
+                )
             }
         }
     }
