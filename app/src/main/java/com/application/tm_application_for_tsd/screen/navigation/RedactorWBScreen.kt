@@ -2,24 +2,11 @@ package com.application.tm_application_for_tsd.screen.navigation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,66 +15,105 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.application.tm_application_for_tsd.network.request_response.Article
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.application.tm_application_for_tsd.network.request_response.WBData
 import com.application.tm_application_for_tsd.network.request_response.WBItem
 import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.RedactorWBViewModel
+import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 @Composable
 fun RedactorWBScreen(
     taskName: String,
     redactorWBViewModel: RedactorWBViewModel = hiltViewModel(),
     onClick: (WBItem) -> Unit,
-    spHelper: SPHelper
+    scannerViewModel: ScannerViewModel = hiltViewModel()
 ) {
     val uiState by redactorWBViewModel.uiState.collectAsState()
+    val scannedBarcode by scannerViewModel.barcodeData.collectAsStateWithLifecycle()
+    var articles by remember { mutableStateOf<List<WBItem>>(emptyList()) }
+    var filteredArticles by remember { mutableStateOf<List<WBItem>>(emptyList()) }
+    var searchQuery by remember { mutableStateOf("") }
 
+    // Загрузка данных
     LaunchedEffect(taskName) {
-        redactorWBViewModel.getData(taskName) // Triggers data load when `taskName` changes
+        redactorWBViewModel.getData(taskName)
+    }
+
+    // Обновляем filteredArticles при изменении articles, searchQuery или scannedBarcode
+    LaunchedEffect(articles, searchQuery, scannedBarcode) {
+        filteredArticles = articles.filter { article ->
+            (scannedBarcode.isNotEmpty() && (
+                    article.shk?.contains(scannedBarcode, ignoreCase = true) == true ||
+                            article.pallet?.contains(scannedBarcode, ignoreCase = true) == true
+                    )) || (searchQuery.isNotEmpty() && (
+                    article.pallet?.contains(searchQuery, ignoreCase = true) == true ||
+                            article.artikul?.toString()?.contains(searchQuery, ignoreCase = true) == true ||
+                            article.shk?.contains(searchQuery, ignoreCase = true) == true
+                    )) || (searchQuery.isEmpty() && scannedBarcode.isEmpty()) // Отображаем всё, если фильтры пустые
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        when (uiState) {
-            is RedactorWBViewModel.UiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
-            }
+        Column(modifier = Modifier.fillMaxSize()) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Поиск") },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
 
-            is RedactorWBViewModel.UiState.Error -> {
-                Text(
-                    text = (uiState as RedactorWBViewModel.UiState.Error).message,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
-                )
-            }
+            when (uiState) {
+                is RedactorWBViewModel.UiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is RedactorWBViewModel.UiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = (uiState as RedactorWBViewModel.UiState.Error).message,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                is RedactorWBViewModel.UiState.Empty -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Пусто!",
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                    }
+                }
+                is RedactorWBViewModel.UiState.Success -> {
+                    val successState = uiState as RedactorWBViewModel.UiState.Success
+                    articles = successState.items
 
-            is RedactorWBViewModel.UiState.Empty -> {
-                Text(
-                    text = "No items found for the current task.",
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
-                )
-            }
-
-            is RedactorWBViewModel.UiState.Success -> {
-                val items = (uiState as RedactorWBViewModel.UiState.Success).items
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    items(items) { item ->
-                        ArticleRedactorForWBCard(item, onClicks = {
-                            onClick(item)
-                        }, onDelete = {
-                            redactorWBViewModel.deleteArticle(item.id, item.name)
-                        })
+                    // Если filteredArticles пуст, показываем сообщение или список
+                    if (filteredArticles.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Нет совпадений",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(filteredArticles) { item ->
+                                ArticleRedactorForWBCard(item, onClicks = {
+                                    onClick(item)
+                                }, onDelete = {
+                                    redactorWBViewModel.deleteArticle(item.id, item.name)
+                                })
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
-
-
 
 @Composable
 fun ArticleRedactorForWBCard(
@@ -106,8 +132,7 @@ fun ArticleRedactorForWBCard(
         ),
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.elevatedCardElevation(4.dp),
-        onClick ={ onClicks(article)}
-
+        onClick = { onClicks(article) }
     ) {
         Box(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -133,12 +158,11 @@ fun ArticleRedactorForWBCard(
                         text = "Паллет: ${article.pallet ?: "Не указан"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                        Text(
-                            text = "Вложеноость: ${article.kolvo}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
-
+                    Text(
+                        text = "Вложеноость: ${article.kolvo}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
 
                 // Иконка удаления

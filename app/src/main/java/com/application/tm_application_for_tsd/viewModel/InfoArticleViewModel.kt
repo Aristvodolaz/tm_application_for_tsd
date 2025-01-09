@@ -56,6 +56,13 @@ class InfoArticleViewModel @Inject constructor(
             }
         }
     }
+    fun clearSuccessMessage() {
+        updateState(successMessage = null)
+    }
+
+    fun clearErrorMessage() {
+        updateState(errorMessage = null)
+    }
 
     fun addExpirationData(persent: String, endDate: String) {
         viewModelScope.launch {
@@ -84,31 +91,13 @@ class InfoArticleViewModel @Inject constructor(
             try {
                 val response = spHelper.getTaskName()
                     ?.let { SrokGodnosti(it,spHelper.getArticuleWork()!!.toInt(),data) }
-                    ?.let { api.addSrokGodnosti(it) }
+                    ?.let { api.addSrokGodnostiForWb(it) }
                 if(response!!.success){
                     _state.value = _state.value.copy(successMessage = "Срок годности успешно обновлен!")
                     _navigateToNextScreen.value = true // Устанавливаем флаг для навигации
 
                 } else  _state.value = _state.value.copy(errorMessage = "Ошибка обновления срока годности.")
 
-            }catch (e: Exception) {
-                _state.value = _state.value.copy(errorMessage = "Ошибка: ${e.localizedMessage}")
-            }
-        }
-    }
-
-
-
-    fun sendSrokForWB(date: String){
-        viewModelScope.launch {
-            try {
-                val response = spHelper.getTaskName()
-                    ?.let { SrokGodnosti(it, spHelper.getArticuleWork()!!.toInt(), date) }
-                    ?.let { api.addSrokGodnostiForWb(it) }
-
-                if(response!!.success){
-                    _state.value = _state.value.copy(successMessage = "Срок годности успешно обновлен!")
-                }
             }catch (e: Exception) {
                 _state.value = _state.value.copy(errorMessage = "Ошибка: ${e.localizedMessage}")
             }
@@ -159,6 +148,7 @@ class InfoArticleViewModel @Inject constructor(
         }
     }
 
+
 }
 
 data class InfoArticleState(
@@ -167,12 +157,12 @@ data class InfoArticleState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val newShk: String? = null,
-    val isTaskInProgress: Boolean = false // Новый флаг
+    val isTaskInProgress: Boolean = false
 )
-
 
 enum class TaskStatus {
     NOT_STARTED,
     IN_PROGRESS,
     CANCELLED
 }
+

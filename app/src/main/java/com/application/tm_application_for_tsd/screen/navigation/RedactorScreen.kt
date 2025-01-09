@@ -42,59 +42,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.WBItem
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 import com.application.tm_application_for_tsd.viewModel.TaskViewModel
 import kotlinx.coroutines.launch
-
 @Composable
 fun RedactorScreen(
     taskName: String,
     viewModel: TaskViewModel = hiltViewModel(),
     scannerViewModel: ScannerViewModel = hiltViewModel(),
-    onClickArticle:(Article.Articuls) -> Unit
+    onClickArticle: (Article.Articuls) -> Unit
 ) {
     var articles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var filteredArticles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
     val scannedBarcode by scannerViewModel.barcodeData.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     // Загрузка данных при инициализации
     LaunchedEffect(taskName) {
-        try {
-            isLoading = true
-            articles = viewModel.getTasksInWork(taskName, 2).articuls
-            filteredArticles = articles
-        } catch (e: Exception) {
-            Toast.makeText(context, "Ошибка загрузки: ${e.message}", Toast.LENGTH_SHORT).show()
-        } finally {
-            isLoading = false
+        loadArticles(taskName, viewModel, context) { loadedArticles ->
+            articles = loadedArticles
+            filteredArticles = loadedArticles
         }
     }
 
-    // Фильтрация по штрих-коду
-    LaunchedEffect(scannedBarcode) {
-        if (scannedBarcode.isNotEmpty()) {
-            filteredArticles = articles.filter {
-                it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true
+    // Обновляем список по введенному тексту или отсканированному штрих-коду
+    LaunchedEffect(searchQuery, scannedBarcode) {
+        filteredArticles = if (scannedBarcode.isNotEmpty()) {
+            articles.filter { it.shk == scannedBarcode || it.artikul.toString() == scannedBarcode || it.shkSyrya == scannedBarcode }
+        } else {
+            articles.filter {
+                it.nazvanieTovara?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.artikul.toString()?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.shkSyrya?.contains(searchQuery, ignoreCase = true) == true
             }
-            scannerViewModel.clearBarcode()
-
-        }
-    }
-
-    // Фильтрация по поисковому запросу
-    LaunchedEffect(searchQuery) {
-        val query = searchQuery
-        filteredArticles = articles.filter {
-            it.nazvanieTovara?.contains(query, ignoreCase = true) == true ||
-                    it.artikulSyrya?.contains(query, ignoreCase = true) == true ||
-                    it.artikul?.toString()?.contains(query) == true ||
-                    it.shk?.contains(query) == true ||
-                    it.shkSyrya?.contains(query) == true
         }
     }
 
@@ -115,7 +100,7 @@ fun RedactorScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Поиск") },
+            label = { Text("Поиск по названию или артикулу") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
@@ -133,15 +118,10 @@ fun RedactorScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleRedactorForOzonCard  (
+                        ArticleRedactorForOzonCard(
                             article = article,
-                            onClicks = { onClickArticle(article)},
-                            onDelete = { article.nazvanieZadaniya?.let { it1 ->
-                                viewModel.deleteArticle(article.id!!.toLong(),
-                                    it1
+                            onClicks = { onClickArticle(article) },
                                 )
-                            } }
-                        )
                     }
                 }
             }
@@ -149,16 +129,28 @@ fun RedactorScreen(
     }
 }
 
-
-
+// Вспомогательная функция для загрузки статей
+private fun loadArticles(
+    taskName: String,
+    viewModel: TaskViewModel,
+    context: Context,
+    onLoaded: (List<Article.Articuls>) -> Unit
+) {
+    viewModel.viewModelScope.launch {
+        try {
+            val result = viewModel.getTasksInWork(taskName, 2).articuls
+            onLoaded(result)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Ошибка загрузки: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
 
 @Composable
 fun ArticleRedactorForOzonCard(
     article: Article.Articuls,
     onClicks: (Article.Articuls) -> Unit,
-    onDelete: (Article.Articuls) -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -169,80 +161,49 @@ fun ArticleRedactorForOzonCard(
         ),
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.elevatedCardElevation(4.dp),
-        onClick ={ onClicks(article)}
-
+        onClick = { onClicks(article) }
     ) {
         Box(modifier = Modifier.padding(12.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Столбец с информацией об артикуле
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = ("Название: " + article.artikul.toString()) ?: "Не указано",
+                        text = "Название: ${article.nazvanieTovara ?: "Не указано"}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Ариткул: ${article.artikul ?: "Не указан"}",
+                        text = "Артикул: ${article.artikul ?: "Не указан"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Паллет: ${article.palletNo ?: "Не указан"}",
+                        text = "ШК: ${article.shk ?: "Не указан"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Место: ${article.mesto ?: "Не указан"}",
+                        text = "Место: ${article.mesto ?: "Не указано"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Вложеноость: ${article.vlozhennost}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        text = "Вложенность: ${article.vlozhennost ?: "Не указано"}",
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                }
-
-                // Иконка удаления
-                IconButton(
-                    onClick = { showDialog = true },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
-                        contentDescription = "Удалить",
-                        tint = Color.Red
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Паллет: ${article.palletNo ?: "Не указано"}",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            }
-
-            // Показываем диалог подтверждения удаления
-            if (showDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onDelete(article) // Вызов обработчика удаления
-                            showDialog = false
-                        }) {
-                            Text("Удалить", color = Color.Red)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Отмена")
-                        }
-                    },
-                    title = { Text("Удаление") },
-                    text = { Text("Вы уверены, что хотите удалить этот элемент?") }
-                )
-            }
+                }
         }
     }
 }
-

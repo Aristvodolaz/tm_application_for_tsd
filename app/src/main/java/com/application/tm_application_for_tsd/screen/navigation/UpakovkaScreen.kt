@@ -63,7 +63,8 @@ fun UpakovkaScreen(
     LaunchedEffect(scannedBarcode) {
         if (scannedBarcode.isNotEmpty()) {
             filteredArticles = articles.filter {
-                it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true
+                it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true ||
+                        it.shkWps?.contains(scannedBarcode) == true
             }
             scannerViewModel.clearBarcode()
 

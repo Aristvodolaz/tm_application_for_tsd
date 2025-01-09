@@ -44,13 +44,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.viewModel.ScannerViewModel
 import com.application.tm_application_for_tsd.viewModel.TaskViewModel
-
 @Composable
-fun RedactorForMasterScreen (
+fun RedactorForMasterScreen(
     taskName: String,
     viewModel: TaskViewModel = hiltViewModel(),
     scannerViewModel: ScannerViewModel = hiltViewModel(),
-    onClick:(Article.Articuls) -> Unit
+    onClick: (Article.Articuls) -> Unit
 ) {
     var articles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
     var filteredArticles by remember { mutableStateOf<List<Article.Articuls>>(emptyList()) }
@@ -76,22 +75,24 @@ fun RedactorForMasterScreen (
     LaunchedEffect(scannedBarcode) {
         if (scannedBarcode.isNotEmpty()) {
             filteredArticles = articles.filter {
-                it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true
+                it.shk?.contains(scannedBarcode) == true ||
+                        it.shkSyrya?.contains(scannedBarcode) == true ||
+                        it.shkWps?.contains(scannedBarcode) == true
             }
             scannerViewModel.clearBarcode()
-
         }
     }
 
     // Фильтрация по поисковому запросу
     LaunchedEffect(searchQuery) {
-        val query = searchQuery
+        val query = searchQuery.trim()
         filteredArticles = articles.filter {
             it.nazvanieTovara?.contains(query, ignoreCase = true) == true ||
                     it.artikulSyrya?.contains(query, ignoreCase = true) == true ||
                     it.artikul?.toString()?.contains(query) == true ||
                     it.shk?.contains(query) == true ||
-                    it.shkSyrya?.contains(query) == true
+                    it.shkSyrya?.contains(query) == true ||
+                    it.shkWps?.contains(query) == true
         }
     }
 
@@ -130,9 +131,23 @@ fun RedactorForMasterScreen (
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredArticles) { article ->
-                        ArticleCard(
+                        ArticleCardWithDelete(
                             article = article,
-                            onClick = { onClick(article)}
+                            onClick = { onClick(article) },
+                            onDelete = { selectedArticle ->
+                                handleDeleteArticle(
+                                    context = context,
+                                    viewModel = viewModel,
+                                    selectedArticle = selectedArticle,
+                                    taskName = taskName,
+                                    articles = articles,
+                                    filteredArticles = filteredArticles,
+                                    onArticlesUpdate = { updatedArticles ->
+                                        articles = updatedArticles
+                                        filteredArticles = updatedArticles
+                                    }
+                                )
+                            }
                         )
                     }
                 }
@@ -141,3 +156,114 @@ fun RedactorForMasterScreen (
     }
 }
 
+@Composable
+fun ArticleCardWithDelete(
+    article: Article.Articuls,
+    onClick: (Article.Articuls) -> Unit,
+    onDelete: (Article.Articuls) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFAFA)),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        onClick = { onClick(article) }
+    ) {
+        Box(modifier = Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Название: ${article.nazvanieTovara ?: "Не указано"}",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "Артикул: ${article.artikul ?: "Не указан"}", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "ШК: ${article.shk ?: "Не указан"}", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = "Место: ${article.mesto ?: "Не указано"}", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                IconButton(
+                    onClick = { showDialog = true },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                        contentDescription = "Удалить",
+                        tint = Color.Red
+                    )
+                }
+            }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDelete(article)
+                            showDialog = false
+                        }) {
+                            Text("Удалить", color = Color.Red)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Отмена")
+                        }
+                    },
+                    title = { Text("Удаление") },
+                    text = { Text("Вы уверены, что хотите удалить этот элемент?") }
+                )
+            }
+        }
+    }
+}
+
+fun handleDeleteArticle(
+    context: Context,
+    viewModel: TaskViewModel,
+    selectedArticle: Article.Articuls,
+    taskName: String,
+    articles: List<Article.Articuls>,
+    filteredArticles: List<Article.Articuls>,
+    onArticlesUpdate: (List<Article.Articuls>) -> Unit
+) {
+    if (selectedArticle.pref == "WB") {
+        viewModel.resetWB(
+            id = selectedArticle.id?.toLong() ?: 0,
+            taskName = taskName,
+             articul = selectedArticle.artikul.toString(),
+            onSuccess = {
+                Toast.makeText(context, "Удаление успешно", Toast.LENGTH_SHORT).show()
+                val updatedArticles = articles.filter { it.id != selectedArticle.id }
+                onArticlesUpdate(updatedArticles)
+            },
+            onError = { error ->
+                Toast.makeText(context, "Ошибка удаления: $error", Toast.LENGTH_SHORT).show()
+            }
+        )
+    } else {
+        viewModel.resetOzon(
+            articul = selectedArticle.artikul.toString(),
+            taskName = taskName,
+            onSuccess = {
+                Toast.makeText(context, "Удаление успешно", Toast.LENGTH_SHORT).show()
+                val updatedArticles = articles.filter { it.id != selectedArticle.id }
+                onArticlesUpdate(updatedArticles)
+            },
+            onError = { error ->
+                Toast.makeText(context, "Ошибка удаления: $error", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+}

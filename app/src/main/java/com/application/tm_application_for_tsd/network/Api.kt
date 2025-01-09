@@ -3,8 +3,10 @@ package com.application.tm_application_for_tsd.network
 import com.application.tm_application_for_tsd.network.request_response.AddBox
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
+import com.application.tm_application_for_tsd.network.request_response.DeleteResponse
 import com.application.tm_application_for_tsd.network.request_response.EmployeeResponse
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
+import com.application.tm_application_for_tsd.network.request_response.GetSizeOtkaz
 import com.application.tm_application_for_tsd.network.request_response.Pallet
 import com.application.tm_application_for_tsd.network.request_response.PalletList
 import com.application.tm_application_for_tsd.network.request_response.ShkInDb
@@ -49,8 +51,14 @@ interface Api {
     @GET("/market/new/getLdu")
     suspend fun getLDU(@Query("id") id: Long): ChooseOp
 
-    @DELETE("/market/tasks/deleteRecord")
-    suspend fun deleteRecord(@Query("id") id: Long , @Query("task") name: String): ChooseOp
+    @DELETE("/market/tasks/deleteRecordByWB")
+    suspend fun deleteRecord(@Query("id") id: Long , @Query("task") name: String): Universal
+
+    @POST("/market/tasks/resetOzon")
+    suspend fun resetOzon(@Query("taskName") taskName: String, @Query("articul") articul: String): DeleteResponse
+
+    @POST("resetWB")
+    suspend fun resetWB(@Query("articul") articul: String, @Query("taskName") taskName: String, @Query("id") id: Long): DeleteResponse
 
     @POST("market/new/updateLdu")
     suspend fun updateCheckBox(@Query("id") id: Long, @Body data: MutableMap<String, String>): Universal
@@ -111,5 +119,14 @@ interface Api {
 
     @POST("/market/otkaz/")
     suspend fun setFactSize(@Query("id") id: Long, @Query("count") count: Int): Universal
+//    @POST("/market/otkaz/")
+//    suspend fun setFactSize(@Query("id") id: Long, @Query("count") count: Int, @Query("factVp") factVp: Int): Universal
+    @GET("/market/otkaz/getSum")
+    suspend fun getVPSize(@Query("item_num") id: String, @Query("transfer_num") count: String): GetSizeOtkaz
 
+    @GET("/market/new/checkOrderCompletionWB")
+    suspend fun checkWBComplect(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
+
+    @GET("/market/new/checkOrderCompletionOzon")
+    suspend fun checkOZONComplect(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
 }

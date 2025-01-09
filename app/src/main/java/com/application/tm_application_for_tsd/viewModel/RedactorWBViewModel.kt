@@ -39,7 +39,7 @@ class RedactorWBViewModel @Inject constructor(
                     _uiState.value = UiState.Error("An unknown error occurred.")
                 }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to fetch data: ${e.localizedMessage}")
+                _uiState.value = UiState.Error("Пусто!")
             }
         }
     }
@@ -48,7 +48,7 @@ class RedactorWBViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 api.deleteRecord(id, taskName )
-//                api.deleteArticle(articleId) // Ваш API для удаления
+                getData(taskName)
             } catch (e: Exception) {
                 // Обработать ошибку
             }

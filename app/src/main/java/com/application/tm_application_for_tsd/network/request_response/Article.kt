@@ -58,6 +58,9 @@ data class Article(
         @SerializedName("Time_Middle") val timeMiddle: String?,
         @SerializedName("Time_End") val timeEnd: String?,
         @SerializedName("Persent") val persent: String?,
-        @SerializedName("SHK_WPS") val shkWps: String?
+        @SerializedName("SHK_WPS") val shkWps: String?,
+        @SerializedName("vp")  val vp: String?,
+        @SerializedName("fcat_vp")  val factVp: String?,
+        @SerializedName("Plan_Otkaz") val planOtkaz: String?
     ): Parcelable
 }

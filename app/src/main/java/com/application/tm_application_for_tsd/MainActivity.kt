@@ -53,6 +53,7 @@ import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.CheckShkScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoArticleScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoSyryoScreen
+import com.application.tm_application_for_tsd.screen.otkaz.OtkazScreen
 import com.application.tm_application_for_tsd.screen.upakovka.OzonScreen
 import com.application.tm_application_for_tsd.screen.upakovka.wb.WBBoxScreen
 import com.application.tm_application_for_tsd.screen.upakovka.wb.WBListScreen
@@ -94,7 +95,6 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             TSDApplication(navController, scannerViewModel, articleViewModel, authViewModel, spHelper)
         }
-        // Регистрация BroadcastReceiver
         val intentFilter = IntentFilter("com.symbol.datawedge.api.RESULT_ACTION")
         registerReceiver(scanReceiver, intentFilter)
     }
@@ -142,7 +142,9 @@ fun TSDApplication(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (isAuthenticated) "task" else "auth",
+            startDestination = "task",
+
+//            startDestination = if (isAuthenticated) "task" else "auth",
             Modifier.padding(innerPadding)
         ) {
             composable("auth") {
@@ -175,7 +177,10 @@ fun TSDApplication(
                             spHelper.setPref(article.pref.toString())
                             article.id?.let { it1 -> spHelper.setId(it1) }
                             spHelper.setNameStuffWork(article.nazvanieTovara.toString())
-                            navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "article",
+                                article
+                            )
                             val destination = if (article.kolVoSyrya != null) {
                                 "info_syryo_screen"
                             } else {
@@ -188,81 +193,125 @@ fun TSDApplication(
             }
 
 
-            composable("info_syryo_screen"){
-                val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+            composable("info_syryo_screen") {
+                val article =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                println(article.toString())
                 if (article != null) {
                     article.id?.let { spHelper.setId(it) }
-                    InfoSyryoScreen(spHelper = spHelper, article = article, viewModel = articleViewModel,
+                    InfoSyryoScreen(spHelper = spHelper,
+                        article = article,
+                        viewModel = articleViewModel,
                         onNavigateToNext = {
                             navController.navigate("write_ldu")
                         })
                 } else {
-                    Text("Ошибка: артикул не найден", modifier = Modifier.fillMaxSize(), color = Color.Red)
+                    Text(
+                        "Ошибка: артикул не найден",
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Red
+                    )
                 }
             }
             composable("info_article_screen") { backStackEntry ->
-                val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                val article =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
                     article.id?.let { spHelper.setId(it) }
-                    InfoArticleScreen(spHelper = spHelper, article = article, viewModel = articleViewModel,
+                    InfoArticleScreen(spHelper = spHelper,
+                        article = article,
+                        viewModel = articleViewModel,
                         onNavigateToNext = {
                             navController.navigate("check_shk")
                         })
                 } else {
-                    Text("Ошибка: артикул не найден", modifier = Modifier.fillMaxSize(), color = Color.Red)
+                    Text(
+                        "Ошибка: артикул не найден",
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Red
+                    )
                 }
             }
 
-            composable("check_shk"){
-                CheckShkScreen(spHelper = spHelper, scanViewModel = scannerViewModel, onNavigateToNext = {
-                    navController.navigate("write_ldu")
-                })
+            composable("check_shk") {
+                CheckShkScreen(
+                    spHelper = spHelper,
+                    scanViewModel = scannerViewModel,
+                    onNavigateToNext = {
+                        navController.navigate("write_ldu")
+                    })
             }
 
-            composable("write_ldu"){
-                spHelper.getTaskName()?.let { AddLduScreen( id =  spHelper.getId(),
-                    onSaveSuccess = {
-                    navController.navigate("obrabotka")
-                }) }
+            composable("write_ldu") {
+                spHelper.getTaskName()?.let {
+                    AddLduScreen(id = spHelper.getId(),
+                        onSaveSuccess = {
+                            navController.navigate("obrabotka")
+                        })
+                }
             }
 
 
 
             composable("upakovka") {
                 spHelper.getTaskName()
-                    ?.let { it1 -> UpakovkaScreen(taskName = it1, scannerViewModel = scannerViewModel,
-                        onArticleClick = { article ->
-                            spHelper.setArticuleWork(article.artikul.toString())
-                            spHelper.setShkWork(article.shk.toString())
-                            spHelper.setPref(article.pref.toString())
-                            article.id?.let { it2 -> spHelper.setId(it2) }
+                    ?.let { it1 ->
+                        UpakovkaScreen(taskName = it1, scannerViewModel = scannerViewModel,
+                            onArticleClick = { article ->
+                                spHelper.setArticuleWork(article.artikul.toString())
+                                spHelper.setShkWork(article.shk.toString())
+                                spHelper.setPref(article.pref.toString())
+                                article.id?.let { it2 -> spHelper.setId(it2) }
 
-                            spHelper.setNameStuffWork(article.nazvanieTovara.toString())
-                            navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
-                            navController.navigate("upakovka_article_screen")
-                        }) }
+                                spHelper.setNameStuffWork(article.nazvanieTovara.toString())
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "article",
+                                    article
+                                )
+                                navController.navigate("upakovka_article_screen")
+                            })
+                    }
 
             }
+
             composable("upakovka_article_screen") {
-                val article = navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                val article =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
-                    article.id?.let { it1 -> spHelper.setId(it1.toLong()) }
-                    spHelper.getTaskName()?.let {
-                        article.id?.let { it1 ->
-                            LduScreen(
-                                it1,
-                                toNextScreen = {
-                                    if(spHelper.getPref() == "WB") navController.navigate("set_in_box_wb")
-                                    else navController.navigate("set_in_box")
-                                }
-                            )
+                    if (article.status == 3) {
+                        spHelper.getTaskName()?.let {
+                            article.id?.let { it1 ->
+                                LduScreen(
+                                    it1,
+                                    toNextScreen = {
+                                        if (spHelper.getPref() == "WB") navController.navigate("set_in_box_wb")
+                                        else navController.navigate("set_in_box")
+                                    }
+                                )
+                            }
                         }
+                    } else {
+                        OtkazScreen(article, spHelper = spHelper, toNextScreen = {
+                            article.id?.let { it1 -> spHelper.setId(it1) }
+                            navController.navigate("show_ldu_after_updakovka")
+                        })
+
                     }
                 }
             }
 
+            composable("show_ldu_after_updakovka"){
+                LduScreen(spHelper.getId(), toNextScreen = {
+                    if (spHelper.getPref() == "WB") navController.navigate("set_in_box_wb")
+                    else navController.navigate("set_in_box")
+                }
+                )
+            }
+
             composable("set_in_box"){
-                OzonScreen(spHelper = spHelper)
+                OzonScreen(spHelper = spHelper, toNextScreen = {
+                    navController.navigate("upakovka")
+                })
             }
 
             composable("set_in_box_wb"){
@@ -295,12 +344,13 @@ fun TSDApplication(
                 }
             }
             composable("redactor") {
-                if(spHelper.getPref() == "WB") {
+                if(spHelper.getTaskName()?.contains("WB") == true) {
                     spHelper.getTaskName()?.let { it1 ->
-                        RedactorWBScreen(spHelper = spHelper, taskName = it1, onClick = {
+                        RedactorWBScreen(scannerViewModel = scannerViewModel, taskName = it1, onClick = {
                             spHelper.setSHKPallet(it.pallet)
                             spHelper.setSHKBox(it.shk)
                             spHelper.setId(it.id)
+                            spHelper.setSize(it.kolvo.toString())
                             navController.navigate("wb_edit_screen")
                         })
                     }
@@ -363,9 +413,13 @@ fun TSDApplication(
             }
 
             composable("redactor_other"){
-                OzonEditScreen(spHelper = spHelper, onDone = {
-                    navController.navigate("master")
-                })
+                val article =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
+                if (article != null) {
+                    OzonEditScreen(spHelper = spHelper, article = article, onDone = {
+                        navController.navigate("master")
+                    })
+                }
             }
             composable("info") {
                 spHelper.getTaskName()?.let { PalletScreen(taskName = spHelper.getTaskName()!!) } // Передаем SPHelper

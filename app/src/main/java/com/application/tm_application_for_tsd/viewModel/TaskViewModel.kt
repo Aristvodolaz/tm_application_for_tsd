@@ -2,6 +2,7 @@ package com.application.tm_application_for_tsd.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.application.tm_application_for_tsd.network.Api
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.Data
@@ -10,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 @HiltViewModel
 class TaskViewModel @Inject constructor(
@@ -81,15 +83,37 @@ class TaskViewModel @Inject constructor(
         fetchTasks(sklad.pref) // Загружаем задания для выбранного склада
     }
 
-    fun deleteArticle(id: Long, taskName: String) {
+    fun resetWB(articul: String, taskName: String, id: Long, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                api.deleteRecord(id, taskName )
-//                api.deleteArticle(articleId) // Ваш API для удаления
+                val response = api.resetWB(articul, taskName, id)
+                if (response.success ) {
+                    onSuccess()
+                } else {
+                    onError("Ошибка соединения")
+                }
+            } catch (e: HttpException) {
+                onError("Ошибка: ${e.message}")
             } catch (e: Exception) {
-                // Обработать ошибку
+                onError("Неизвестная ошибка: ${e.message}")
             }
         }
     }
 
+    fun resetOzon(taskName: String, articul: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = api.resetOzon(taskName, articul)
+                if (response.success ) {
+                    onSuccess()
+                } else {
+                    onError("Ошибка соединения")
+                }
+            } catch (e: HttpException) {
+                onError("Ошибка: ${e.message}")
+            } catch (e: Exception) {
+                onError("Неизвестная ошибка: ${e.message}")
+            }
+        }
+    }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.OzonEditViewModel
 
@@ -31,13 +34,14 @@ import com.application.tm_application_for_tsd.viewModel.OzonEditViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OzonEditScreen(
+    article: Article.Articuls,
     ozonEditViewModel: OzonEditViewModel = hiltViewModel(),
     spHelper: SPHelper,
     onDone: () -> Unit
 ) {
-    var pallet by remember { mutableStateOf("") }
-    var nestedness by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
+    var pallet by remember { mutableStateOf(article.palletNo.toString()) }
+    var nestedness by remember { mutableStateOf(article.vlozhennost.toString()) }
+    var location by remember { mutableStateOf(article.mesto.toString()) }
 
     Scaffold(
         topBar = {
@@ -57,6 +61,7 @@ fun OzonEditScreen(
                 // Поле ввода для паллета
                 OutlinedTextField(
                     value = pallet,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onValueChange = { pallet = it },
                     label = { Text("Паллет") },
                     placeholder = { Text("Введите номер паллета") },
@@ -66,6 +71,7 @@ fun OzonEditScreen(
                 // Поле ввода для вложенности
                 OutlinedTextField(
                     value = nestedness,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onValueChange = { nestedness = it },
                     label = { Text("Вложенность") },
                     placeholder = { Text("Введите вложенность") },
@@ -74,6 +80,7 @@ fun OzonEditScreen(
 
                 // Поле ввода для места
                 OutlinedTextField(
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     value = location,
                     onValueChange = { location = it },
                     label = { Text("Место") },

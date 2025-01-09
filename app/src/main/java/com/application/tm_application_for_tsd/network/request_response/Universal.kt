@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class  Universal(
     @SerializedName("success") val success: Boolean,
+    @SerializedName("value") val value: String,
     @SerializedName("errorCode") val errorCode: Int
 )
 

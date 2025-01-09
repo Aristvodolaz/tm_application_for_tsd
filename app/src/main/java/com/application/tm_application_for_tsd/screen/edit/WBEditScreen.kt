@@ -36,7 +36,7 @@ fun WBEditScreen (
     wbViewModel: WBViewModel = hiltViewModel(),
     toDone: () -> Unit
 ) {
-    var vlozhennost by remember { mutableStateOf("") }
+    var vlozhennost by remember { mutableStateOf(spHelper.getSize().toString()) }
     var isInputValid by remember { mutableStateOf(true) }
 
     Column(

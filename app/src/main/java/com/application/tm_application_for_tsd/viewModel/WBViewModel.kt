@@ -32,16 +32,42 @@ class WBViewModel @Inject constructor(
     init {
         loadData()
     }
-
-    private fun loadData() {
+    fun checkOrderCompletionBeforeClosing() {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
             try {
+                // Здесь предполагается, что у вас есть API метод, который проверяет состояние заказа
                 val taskName = spHelper.getTaskName() ?: "Unknown Task"
                 val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
 
                 if (artikul == -1) {
                     _uiState.value = UiState.Error("Invalid artikul")
+                    return@launch
+                }
+
+                // Проверка WB или OZON комплектации через API
+                val response = api.checkWBComplect(taskName, artikul.toString()) // Замените на фактический вызов API
+                if (response.success) {
+                    // Если проверка прошла успешно, можно завершить задание
+                    closeTask()
+                } else {
+                    // Если не удалось пройти проверку
+                    _uiState.value = UiState.Error(response.value)
+                }
+
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error("Ошибка проверки: ${e.message}")
+            }
+        }
+    }
+    private fun loadData() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val taskName = spHelper.getTaskName() ?: "Неизвестное название задания"
+                val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
+
+                if (artikul == -1) {
+                    _uiState.value = UiState.Error("Ошибка артикула")
                     return@launch
                 }
 
@@ -51,7 +77,7 @@ class WBViewModel @Inject constructor(
 
                 _uiState.value = UiState.Loaded(boxes, spHelper.getNameStuffWork().toString(),  totalCount)
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to load data: ${e.message}")
+                _uiState.value = UiState.Error("Ошибка: ${e.localizedMessage}")
             }
         }
     }
@@ -59,18 +85,18 @@ class WBViewModel @Inject constructor(
     fun addBox(vlozh: Int, wps: String, pallet: String) {
         viewModelScope.launch {
             try {
-                val taskName = spHelper.getTaskName() ?: "Unknown Task"
+                val taskName = spHelper.getTaskName() ?: "Неизвестное название задания"
                 val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
 
                 if (artikul == -1) {
-                    _uiState.value = UiState.Error("Invalid artikul")
+                    _uiState.value = UiState.Error("Ошибка артикула")
                     return@launch
                 }
 
                 api.addBox( AddBox( taskName, artikul,vlozh, pallet,wps ))
                 _uiState.value = UiState.Success
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to add box: ${e.message}")
+                _uiState.value = UiState.Error("Ошибка: ${e.localizedMessage}")
             }
         }
     }
@@ -81,6 +107,7 @@ class WBViewModel @Inject constructor(
                 val taskName = spHelper.getTaskName() ?: "Unknown Task"
                 val response = api.checkWps(taskName, shk)
                 if(!response.success) _uiState.value = UiState.Error("Данный ШК ВПС уже используется в заказе!")
+                else _uiState.value = UiState.Success
 
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Ошибка добавления короба: ${e.message}")
@@ -108,7 +135,7 @@ class WBViewModel @Inject constructor(
                 api.endStatusWb(spHelper.getId())
                 _uiState.value = UiState.Success // Reset UI state after closing the task
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Failed to close task: ${e.message}")
+                _uiState.value = UiState.Error("Ошибка закрытия задания: ${e.localizedMessage}")
             }
         }
     }

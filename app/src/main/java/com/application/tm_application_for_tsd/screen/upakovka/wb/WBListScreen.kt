@@ -31,6 +31,7 @@ fun WBListScreen(
     var showExcludeDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
+    val snackbarHostState = remember { SnackbarHostState() } // Создаем состояние для Snackbar
 
     Scaffold(
         topBar = {
@@ -38,7 +39,8 @@ fun WBListScreen(
                 title = { Text("Список коробов", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) } // Добавляем SnackbarHost в Scaffold
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -50,11 +52,10 @@ fun WBListScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is WBViewModel.UiState.Error -> {
-                    Text(
-                        text = (uiState as WBViewModel.UiState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    val errorMessage = (uiState as WBViewModel.UiState.Error).message
+                    LaunchedEffect(errorMessage) {
+                        snackbarHostState.showSnackbar(errorMessage)
+                    }
                 }
                 is WBViewModel.UiState.Loaded -> {
                     val loadedState = uiState as WBViewModel.UiState.Loaded
@@ -123,9 +124,8 @@ fun WBListScreen(
 
                                 Button(
                                     onClick = {
-                                        wbViewModel.closeTask()
-                                        toDone()
-                                              },
+                                        wbViewModel.checkOrderCompletionBeforeClosing()
+                                    },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                                 ) {
@@ -145,7 +145,10 @@ fun WBListScreen(
                 }
 
                 WBViewModel.UiState.Success -> {
-                    // Успешное завершение действия
+                    toDone()
+                    LaunchedEffect("Task completed successfully") {
+                        snackbarHostState.showSnackbar("Задание успешно закрыто!")
+                    }
                 }
             }
 
@@ -154,7 +157,7 @@ fun WBListScreen(
                     reasons = reasons,
                     onDismiss = { showExcludeDialog = false },
                     onConfirm = { reason, comment, size ->
-                        wbViewModel.excludeArticle(spHelper.getId(),reason, comment, size.toInt()) // todo сюда надо добавить количество
+                        wbViewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt())
                         showExcludeDialog = false
                     }
                 )

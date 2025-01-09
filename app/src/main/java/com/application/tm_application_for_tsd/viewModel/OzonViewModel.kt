@@ -38,6 +38,11 @@ class OzonViewModel @Inject constructor(
 
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+    private val _completionError = MutableStateFlow<String?>(null)
+    val completionError: StateFlow<String?> = _completionError.asStateFlow()
+    private val _isNonStandardAction = MutableStateFlow(false)
+    val isNonStandardAction: StateFlow<Boolean> = _isNonStandardAction.asStateFlow()
+
 
     fun onVneshnostChange(value: String) {
         _vneshnost.value = value
@@ -51,6 +56,17 @@ class OzonViewModel @Inject constructor(
         _palletNumber.value = value
     }
 
+    private suspend fun checkOzonCompletion(name: String, articul: String) {
+        try {
+            val response = api.checkOZONComplect(name, articul)
+            if (!response.success) {
+                _completionError.value = response.value
+            }
+        } catch (e: Exception) {
+            _completionError.value = "Ошибка проверки OZON: ${e.message}"
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendFinishData() {
         viewModelScope.launch {
@@ -58,19 +74,27 @@ class OzonViewModel @Inject constructor(
             _error.value = null
             _successMessage.value = null
             try {
-                val currentDateTime = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
-                val response = api.updateOzon(id =  spHelper.getId(),
+
+                spHelper.getArticuleWork()?.let { checkOzonCompletion(spHelper.getTaskName()!!, it) }
+
+                if (_completionError.value == null) {
+
+                    val currentDateTime = LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
+                    val response = api.updateOzon(
+                        id = spHelper.getId(),
                         mesto = _boxCount.value.toInt(),
                         vlozhennost = _vneshnost.value.toInt(),
                         palletNo = _palletNumber.value.toInt(),
                         time = currentDateTime
                     )
-                if (response.success) {
-                    _successMessage.value = "Данные успешно отправлены"
-                } else {
-                    throw Exception("Неверные данные для отправки")
+                    if (response.success) {
+                        _successMessage.value = "Данные успешно отправлены"
+                    } else {
+                        throw Exception("Неверные данные для отправки")
+                    }
                 }
+
             } catch (e: Exception) {
                 _error.value = "Ошибка: ${e.message}"
             } finally {
@@ -82,14 +106,16 @@ class OzonViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveNonStandardData(nested: String, place: String, pallet: String) {
         viewModelScope.launch {
+            _isNonStandardAction.value = true  // Устанавливаем флаг для нестандартной вложенности
             try {
                 val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
-                val response =  api.getDuplicate(spHelper.getId(), place.toInt(), nested.toInt(), pallet.toInt(),currentDateTime )
-                // Логика сохранения нестандартных данных
+                val response = api.getDuplicate(spHelper.getId(), place.toInt(), nested.toInt(), pallet.toInt(), currentDateTime)
 
-                if(response!!.success) _successMessage.value = "Нестандартная вложенность сохранена"
-                else throw Exception("Неверные данные для отправки")
-
+                if (response!!.success) {
+                    _successMessage.value = "Нестандартная вложенность сохранена"
+                } else {
+                    throw Exception("Неверные данные для отправки")
+                }
             } catch (e: Exception) {
                 _error.value = "Ошибка: ${e.message}"
             } finally {
@@ -97,6 +123,7 @@ class OzonViewModel @Inject constructor(
             }
         }
     }
+
     fun excludeArticle(id: Long, reason: String, comment: String, size: Int) {
         viewModelScope.launch {
             try {
@@ -123,5 +150,7 @@ class OzonViewModel @Inject constructor(
     fun clearMessages() {
         _error.value = null
         _successMessage.value = null
+        _isNonStandardAction.value = false  // Сброс флага после обработки
     }
+
 }

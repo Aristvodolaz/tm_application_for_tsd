@@ -1,16 +1,19 @@
 package com.application.tm_application_for_tsd.screen.obrabotka
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,7 +29,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
-
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -43,17 +45,32 @@ fun InfoArticleScreen(
     var durationInMonths by remember { mutableStateOf("") }
     val context = LocalContext.current
     var showExpirationButton by remember { mutableStateOf(article.status == 1) }
-    var showIsklDialog by remember { mutableStateOf(false) } // Для отображения диалога
+    var showIsklDialog by remember { mutableStateOf(false) }
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
     var showExpirationDialog by remember { mutableStateOf(false) }
     var expirationPercentage by remember { mutableStateOf(0.0) }
     var endDates by remember { mutableStateOf("") }
 
-    // Обработка навигации
+    // Навигация на следующий экран
     LaunchedEffect(navigateToNext) {
         if (navigateToNext) {
             onNavigateToNext()
             viewModel.resetNavigation() // Сбросить флаг навигации
+        }
+    }
+
+    // Показ сообщений Toast
+    state.successMessage?.let { message ->
+        LaunchedEffect(message) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearSuccessMessage() // Очищаем сообщение после показа
+        }
+    }
+
+    state.errorMessage?.let { message ->
+        LaunchedEffect(message) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearErrorMessage() // Очищаем сообщение после показа
         }
     }
 
@@ -94,7 +111,13 @@ fun InfoArticleScreen(
                         endDate = endDate,
                         onEndDateChange = { endDate = it },
                         onCheckDates = {
-                            if (isValidDateFormat(startDate) && (isValidDateFormat(endDate) || durationInMonths.isNotEmpty())) {
+                            if (endDate.isNotEmpty() && isValidDateFormat(endDate)) {
+                                // Если указана только конечная дата
+                                viewModel.addExpirationData(
+                                    persent = "-",
+                                    endDate = endDate
+                                )
+                            } else if (isValidDateFormat(startDate) || (isValidDateFormat(endDate) || durationInMonths.isNotEmpty())) {
                                 val result = validateAndCalculateExpiration(startDate, endDate, durationInMonths)
                                 result?.let { (percentage, calculatedEndDate) ->
                                     expirationPercentage = percentage
@@ -102,9 +125,9 @@ fun InfoArticleScreen(
                                     if (percentage < 75) {
                                         showExpirationDialog = true
                                     } else {
-                                        if(spHelper.getPref()=="WB") viewModel.addSrokForWB(endDates)
+                                        if (spHelper.getPref() == "WB") viewModel.addSrokForWB(endDates)
                                         viewModel.addExpirationData(
-                                            persent = "%.2f".format(percentage),
+                                            persent = "%.1f".format(percentage),
                                             endDate = calculatedEndDate
                                         )
                                     }
@@ -130,7 +153,7 @@ fun InfoArticleScreen(
                         reasons = reasons,
                         onDismiss = { showIsklDialog = false },
                         onConfirm = { reason, comment, size ->
-                            viewModel.excludeArticle(reason, comment, size.toInt()) // todo сюда надо добавить количество
+                            viewModel.excludeArticle(reason, comment, size.toInt())
                             showIsklDialog = false
                         }
                     )
@@ -140,10 +163,10 @@ fun InfoArticleScreen(
                     ShowExpirationDialog(
                         percentagePassed = expirationPercentage,
                         onConfirm = {
-                            if(spHelper.getPref()=="WB") viewModel.addSrokForWB(endDates)
+                            if (spHelper.getPref() == "WB") viewModel.addSrokForWB(endDates)
 
                             viewModel.addExpirationData(
-                                persent = "%.2f".format(expirationPercentage),
+                                persent = "%.1f".format(expirationPercentage),
                                 endDate = endDates
                             )
                             showExpirationDialog = false
@@ -154,21 +177,15 @@ fun InfoArticleScreen(
                         }
                     )
                 }
+
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                }
-
-                state.successMessage?.let {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                }
-
-                state.errorMessage?.let {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 }
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -202,18 +219,21 @@ fun validateAndCalculateExpiration(startDate: String, endDate: String, durationI
         null // Обработка ошибок
     }
 }
+@SuppressLint("DefaultLocale")
 @Composable
 fun ShowExpirationDialog(
     percentagePassed: Double,
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
-    val per = 100 - percentagePassed
+    val per =  100 - percentagePassed
+    val per_ = String.format("%.1f", per)
+
     if (percentagePassed < 75) {
         AlertDialog(
             onDismissRequest = onCancel,
             title = { Text("Внимание") },
-            text = { Text("Срок использования товара $per%, что превышает 75%. Продолжить?") },
+            text = { Text("Срок использования товара $per_%, что превышает 75%. Продолжить?") },
             confirmButton = {
                 Button(onClick = onConfirm) {
                     Text("Да")
@@ -257,20 +277,23 @@ fun ExpirationDateFields(
         OutlinedTextField(
             value = startDate,
             onValueChange = onStartDateChange,
-            label = { Text("Начальная", fontSize = 14.sp) },
+            label = { Text("Начало", fontSize = 14.sp) },
             placeholder = { Text("dd.MM.yyyy") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
         OutlinedTextField(
             value = durationInMonths,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             onValueChange = onDurationChange,
-            label = { Text("Срок (мес)", fontSize = 14.sp) },
+            label = { Text("Мес.", fontSize = 14.sp) },
             modifier = Modifier.weight(1f)
         )
         OutlinedTextField(
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             value = endDate,
             onValueChange = onEndDateChange,
-            label = { Text("Конечная", fontSize = 14.sp) },
+            label = { Text("Конец", fontSize = 14.sp) },
             placeholder = { Text("dd.MM.yyyy") },
             modifier = Modifier.weight(1f)
         )

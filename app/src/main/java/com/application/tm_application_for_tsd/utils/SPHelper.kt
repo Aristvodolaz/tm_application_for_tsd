@@ -17,6 +17,8 @@ class SPHelper(context: Context) {
         private const val VLOZHENNOST_BOX = "vlozh_box"
         private const val SHK_PALLET = "shk_pallet"
         private const val ID = "id"
+
+        private const val SIZE = "size"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -78,6 +80,14 @@ class SPHelper(context: Context) {
 
     fun getPref(): String?{
         return sharedPreferences.getString(PREF, null)
+    }
+
+    fun setSize(pref: String){
+        sharedPreferences.edit().putString(SIZE, pref).apply()
+    }
+
+    fun getSize(): String?{
+        return sharedPreferences.getString(SIZE, null)
     }
     fun setVlozh(vlozh: Int){
         sharedPreferences.edit().putInt(VLOZHENNOST_BOX, vlozh).apply()

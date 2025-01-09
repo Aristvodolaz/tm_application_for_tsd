@@ -63,7 +63,7 @@ fun ExcludeArticleDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Количество (необязательно):", style = MaterialTheme.typography.labelLarge)
+                Text("Количество (обязательно):", style = MaterialTheme.typography.labelLarge)
                 OutlinedTextField(
                     value = quantity,
                     onValueChange = { quantity = it },

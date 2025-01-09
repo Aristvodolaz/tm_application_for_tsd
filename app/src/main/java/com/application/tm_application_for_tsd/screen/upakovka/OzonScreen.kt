@@ -12,7 +12,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -36,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.tm_application_for_tsd.R
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.tm_application_for_tsd.screen.dialog.ExcludeArticleDialog
 import com.application.tm_application_for_tsd.utils.SPHelper
@@ -46,7 +44,8 @@ import com.application.tm_application_for_tsd.viewModel.OzonViewModel
 @Composable
 fun OzonScreen(
     viewModel: OzonViewModel = hiltViewModel(),
-    spHelper: SPHelper
+    spHelper: SPHelper,
+    toNextScreen: () -> Unit
 ) {
     val vneshnost by viewModel.vneshnost.collectAsState()
     val boxCount by viewModel.boxCount.collectAsState()
@@ -54,25 +53,35 @@ fun OzonScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
-    var showDialog by remember { mutableStateOf(false) } // Для отображения диалога
-    var showIsklDialog by remember { mutableStateOf(false) } // Для отображения диалога
+    var showDialog by remember { mutableStateOf(false) }
+    var showIsklDialog by remember { mutableStateOf(false) }
+    var showNonStandardSuccess by remember { mutableStateOf(false) } // Флаг для отображения успеха вложенности
 
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
+    val completionError by viewModel.completionError.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Обработка ошибок и успеха
-    LaunchedEffect(error, successMessage) {
+    LaunchedEffect(error, successMessage, completionError) {
         error?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
         }
         successMessage?.let {
             snackbarHostState.showSnackbar(it)
+            if (!viewModel.isNonStandardAction.value) {  // Переход только при обычной записи
+                toNextScreen()
+            }
+            viewModel.clearMessages()
+        }
+        completionError?.let {
+            snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
         }
     }
+
+
 
     Scaffold(
         topBar = {
@@ -85,13 +94,12 @@ fun OzonScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
-        // Оборачиваем содержимое в вертикальную прокрутку
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .background(Color.White)
-                .verticalScroll(rememberScrollState()), // Добавлена прокрутка
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Отображение товарной информации
@@ -177,18 +185,20 @@ fun OzonScreen(
             NonStandardDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = { nested, place, pallet ->
-                    viewModel.saveNonStandardData(nested, place, pallet)
-                    showDialog = false
+                    viewModel.saveNonStandardData(nested, place, pallet) // Сохранение данных
+                    showDialog = false // Закрываем только диалог, экран остается
                 }
             )
         }
+
+
 
         if (showIsklDialog) {
             ExcludeArticleDialog(
                 reasons = reasons,
                 onDismiss = { showIsklDialog = false },
                 onConfirm = { reason, comment, size ->
-                    viewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt()) // todo сюда надо добавить количество
+                    viewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt())
                     showIsklDialog = false
                 }
             )
