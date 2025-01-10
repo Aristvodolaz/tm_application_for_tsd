@@ -21,44 +21,49 @@ class WBViewModel @Inject constructor(
     sealed class UiState {
         object Loading : UiState()
         data class Loaded(val boxes: List<Box>, val productName: String, val totalCount: Int) : UiState()
-        data class Error(val message: String) : UiState()
+        data class Error(val message: String) : UiState() // Это будет использоваться для всплывающих ошибок
         object Success : UiState() // Новое состояние для успешного действия
-
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     init {
         loadData()
     }
+
+    fun resetError() {
+        _errorMessage.value = null
+    }
+
     fun checkOrderCompletionBeforeClosing() {
         viewModelScope.launch {
             try {
-                // Здесь предполагается, что у вас есть API метод, который проверяет состояние заказа
                 val taskName = spHelper.getTaskName() ?: "Unknown Task"
                 val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
 
                 if (artikul == -1) {
-                    _uiState.value = UiState.Error("Invalid artikul")
+                    _errorMessage.value = "Invalid artikul"
                     return@launch
                 }
 
                 // Проверка WB или OZON комплектации через API
-                val response = api.checkWBComplect(taskName, artikul.toString()) // Замените на фактический вызов API
+                val response = api.checkWBComplect(taskName, artikul.toString())
                 if (response.success) {
-                    // Если проверка прошла успешно, можно завершить задание
-                    closeTask()
+                    closeTask() // Если проверка успешна, закрываем задание
                 } else {
-                    // Если не удалось пройти проверку
-                    _uiState.value = UiState.Error(response.value)
+                    // Если проверка не пройдена, показываем ошибку, но не меняем состояние списка коробов
+                    _errorMessage.value = response.value
                 }
-
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Ошибка проверки: ${e.message}")
+                _errorMessage.value = "Ошибка проверки: ${e.message}"
             }
         }
     }
+
     private fun loadData() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading

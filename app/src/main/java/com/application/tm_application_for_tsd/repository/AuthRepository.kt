@@ -1,23 +1,19 @@
 package com.application.tm_application_for_tsd.repository
 
 import com.application.tm_application_for_tsd.network.Api
-import com.application.tm_application_for_tsd.network.request_response.Employee
+import com.application.tm_application_for_tsd.network.request_response.AuthResponse
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
     private val authService: Api
 ) {
 
-    suspend fun getEmployeeById(id: String): Employee {
+    suspend fun getEmployeeById(id: String): AuthResponse {
         val response = authService.getEmployeeDetails(id)
-        if (response.isAuthorized) {
-            return Employee(
-                id = response.id,
-                name = response.name,
-                position = response.position
-            )
+        return if (response.success) {
+            response
         } else {
-            throw Exception("Employee not authorized")
+            throw Exception("Ошибка авторизации: код ${response.errorCode}")
         }
     }
 }

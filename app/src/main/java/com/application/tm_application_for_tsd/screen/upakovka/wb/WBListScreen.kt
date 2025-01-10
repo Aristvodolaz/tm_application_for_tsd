@@ -32,6 +32,14 @@ fun WBListScreen(
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
     val snackbarHostState = remember { SnackbarHostState() } // Создаем состояние для Snackbar
+    val errorMessage by wbViewModel.errorMessage.collectAsState() // Подписываемся на ошибку
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            wbViewModel.resetError() // Сброс сообщения об ошибке после показа
+        }
+    }
 
     Scaffold(
         topBar = {

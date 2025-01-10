@@ -2,9 +2,9 @@ package com.application.tm_application_for_tsd.network
 
 import com.application.tm_application_for_tsd.network.request_response.AddBox
 import com.application.tm_application_for_tsd.network.request_response.Article
+import com.application.tm_application_for_tsd.network.request_response.AuthResponse
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
 import com.application.tm_application_for_tsd.network.request_response.DeleteResponse
-import com.application.tm_application_for_tsd.network.request_response.EmployeeResponse
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.GetSizeOtkaz
 import com.application.tm_application_for_tsd.network.request_response.Pallet
@@ -27,8 +27,8 @@ import retrofit2.http.Query
 
 interface Api {
 
-    @GET("/api/employee/{id}")
-    suspend fun getEmployeeDetails(@Path("id") id: String): EmployeeResponse
+    @GET("/auth")
+    suspend fun getEmployeeDetails(@Query("id") id: String): AuthResponse
 
     @GET("/market/tasks/names")
     suspend fun getTasks(@Query("sk") sk: String): Task

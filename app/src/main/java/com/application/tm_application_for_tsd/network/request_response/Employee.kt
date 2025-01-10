@@ -1,14 +1,15 @@
 package com.application.tm_application_for_tsd.network.request_response
 
-data class EmployeeResponse(
-    val id: String,
-    val name: String,
-    val position: String,
-    val isAuthorized: Boolean
-)
+import com.google.gson.annotations.SerializedName
 
-data class Employee(
-    val id: String,
-    val name: String,
-    val position: String
-)
+data class AuthResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("value") val value: List<Value>?,
+    @SerializedName("errorCode") val errorCode: Int
+) {
+    data class Value(
+        @SerializedName("ID") val id: Int,
+        @SerializedName("FULL_NAME") val name: String
+    )
+}
+

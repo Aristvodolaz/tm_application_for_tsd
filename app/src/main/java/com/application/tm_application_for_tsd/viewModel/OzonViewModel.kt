@@ -5,7 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
-import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,51 +54,78 @@ class OzonViewModel @Inject constructor(
     fun onPalletNumberChange(value: String) {
         _palletNumber.value = value
     }
-
-    private suspend fun checkOzonCompletion(name: String, articul: String) {
-        try {
-            val response = api.checkOZONComplect(name, articul)
-            if (!response.success) {
-                _completionError.value = response.value
-            }
-        } catch (e: Exception) {
-            _completionError.value = "Ошибка проверки OZON: ${e.message}"
-        }
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendFinishData() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             _successMessage.value = null
+
             try {
+                val articulWork = spHelper.getArticuleWork() ?: throw Exception("Артикул не найден")
+                val taskName = spHelper.getTaskName() ?: throw Exception("Название задания отсутствует")
 
-                spHelper.getArticuleWork()?.let { checkOzonCompletion(spHelper.getTaskName()!!, it) }
-
-                if (_completionError.value == null) {
-
-                    val currentDateTime = LocalDateTime.now()
-                        .format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
-                    val response = api.updateOzon(
-                        id = spHelper.getId(),
-                        mesto = _boxCount.value.toInt(),
-                        vlozhennost = _vneshnost.value.toInt(),
-                        palletNo = _palletNumber.value.toInt(),
-                        time = currentDateTime
-                    )
-                    if (response.success) {
-                        _successMessage.value = "Данные успешно отправлены"
-                    } else {
-                        throw Exception("Неверные данные для отправки")
-                    }
+                // Проверка введенных значений
+                if (_boxCount.value.isEmpty() || _vneshnost.value.isEmpty() || _palletNumber.value.isEmpty()) {
+                    _error.value = "Ошибка: одно или несколько полей пустые."
+                    return@launch
                 }
 
+                val currentMesto = _boxCount.value.toIntOrNull() ?: 0
+                val currentVlozhennost = _vneshnost.value.toIntOrNull() ?: 0
+                val currentTotal = currentMesto * currentVlozhennost
+
+                if (currentTotal <= 0) {
+                    _error.value = "Ошибка: введенные значения должны быть больше нуля."
+                    return@launch
+                }
+
+                // Запрос проверки состояния заказа
+                val checkResponse = api.checkOZONComplect(taskName, articulWork)
+
+                if (checkResponse.success) {
+                    val errorMessage = checkResponse.value
+
+                    // Разбираем ответ "Осталось: X"
+                    val parts = errorMessage.split("Можно добавить:").last().trim()
+                    val remaining = parts.toIntOrNull() ?: 0
+
+                    if (remaining < 0) {
+                        _error.value = "Ошибка: итоговый заказ уже переполнен. Остаток: $remaining. Проверьте данные."
+                        return@launch
+                    }
+
+                    if (currentTotal == remaining) {
+                        sendUpdateRequest(currentTotal)
+                    } else {
+                        _error.value = "Ошибка: можно добавить только $remaining единиц(ы)."
+                    }
+                    return@launch
+                }
             } catch (e: Exception) {
                 _error.value = "Ошибка: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun sendUpdateRequest(currentTotal: Int) {
+        val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
+
+        val response = api.updateOzon(
+            id = spHelper.getId(),
+            mesto = _boxCount.value.toInt(),
+            vlozhennost = _vneshnost.value.toInt(),
+            palletNo = _palletNumber.value.toInt(),
+            time = currentDateTime
+        )
+
+        if (response.success) {
+            _successMessage.value = "Данные успешно отправлены ($currentTotal)."
+        } else {
+            throw Exception("Ошибка отправки данных.")
         }
     }
 

@@ -29,6 +29,7 @@ fun AuthScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     spHelper: SPHelper
 ) {
+    val context = LocalContext.current
 
     // Состояния
     val isLoading by authViewModel.loading.observeAsState(false)
@@ -43,7 +44,6 @@ fun AuthScreen(
             Log.d("AuthScreen", "Authenticating barcode: $barcodeData")
             authViewModel.authenticate(barcodeData)
             scannerViewModel.clearBarcode()
-
         }
     }
 
@@ -52,6 +52,7 @@ fun AuthScreen(
             is AuthViewModel.AuthState.Success -> {
                 val username = (authState as AuthViewModel.AuthState.Success).username
                 spHelper.setNameEmployer(username)
+                scannerViewModel.clearBarcode() // Сброс после обработки
                 Log.d("AuthScreen", "Authentication success. Navigating to home: $username")
                 navController.navigate("task") {
                     popUpTo("auth") { inclusive = true }
@@ -60,9 +61,7 @@ fun AuthScreen(
             is AuthViewModel.AuthState.Error -> {
                 val errorMessage = (authState as AuthViewModel.AuthState.Error).error
                 Log.e("AuthScreen", "Authentication error: $errorMessage")
-                navController.navigate("task") {
-                    popUpTo("auth") { inclusive = true }
-                }
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
             }
             else -> {}
         }

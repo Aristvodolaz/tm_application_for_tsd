@@ -127,7 +127,8 @@ fun ObraborkaScreen(
                     items(filteredArticles) { article ->
                         ArticleCard(
                             article = article,
-                            onClick = { onArticleClick(article) }
+                            onClick = {
+                                onArticleClick(article) }
                         )
                     }
                 }

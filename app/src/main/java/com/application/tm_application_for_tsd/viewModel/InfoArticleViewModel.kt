@@ -33,7 +33,7 @@ class InfoArticleViewModel @Inject constructor(
             try {
                 val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd.MM.yyyy"))
                 val response = api.changeStatus(spHelper.getId(), 1, currentDateTime,
-                   " spHelper.getNameEmployer()!!"
+                   spHelper.getNameEmployer()!!
                 )
 
                 if (response.success) {

@@ -142,9 +142,9 @@ fun TSDApplication(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "task",
+//            startDestination = "task",
 
-//            startDestination = if (isAuthenticated) "task" else "auth",
+            startDestination = if (isAuthenticated) "task" else "auth",
             Modifier.padding(innerPadding)
         ) {
             composable("auth") {
