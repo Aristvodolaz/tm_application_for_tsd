@@ -37,10 +37,15 @@ class OzonViewModel @Inject constructor(
 
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+
     private val _completionError = MutableStateFlow<String?>(null)
     val completionError: StateFlow<String?> = _completionError.asStateFlow()
+
     private val _isNonStandardAction = MutableStateFlow(false)
     val isNonStandardAction: StateFlow<Boolean> = _isNonStandardAction.asStateFlow()
+
+    private val _excludeSuccess = MutableStateFlow<String?>(null)
+    val excludeSuccess: StateFlow<String?> = _excludeSuccess.asStateFlow()
 
 
     fun onVneshnostChange(value: String) {
@@ -154,15 +159,10 @@ class OzonViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = spHelper.getArticuleWork()?.toInt()?.let {
-                    api.excludeArticle(
-                        id,
-                        reason,
-                        comment,
-                        size
-                    )
+                    api.excludeArticle(id, reason, comment, size)
                 }
                 if (response!!.success) {
-                    _successMessage.value = "Артикул успешно исключён из обработки"
+                    _excludeSuccess.value = "Артикул успешно исключён из обработки"
                 } else {
                     _error.value = "Ошибка исключения артикула"
                 }
@@ -171,6 +171,11 @@ class OzonViewModel @Inject constructor(
             }
         }
     }
+
+    fun clearExcludeMessage() {
+        _excludeSuccess.value = null
+    }
+
 
 
     fun clearMessages() {

@@ -190,8 +190,9 @@ fun InfoSyryoScreen(
                             showExpirationDialog = false
                         },
                         onCancel = {
+                            spHelper.getNameEmployer()
+                                ?.let { viewModel.setEndStatus(spHelper.getId(), it) }
                             showExpirationDialog = false
-                            Toast.makeText(context, "Работа с товаром прекращена", Toast.LENGTH_SHORT).show()
                         }
                     )
                 }

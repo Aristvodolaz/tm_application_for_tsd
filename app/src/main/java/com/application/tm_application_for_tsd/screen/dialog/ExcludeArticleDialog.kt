@@ -22,72 +22,68 @@ fun ExcludeArticleDialog(
     var quantity by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
+    // Ошибки для каждого поля
+    var reasonError by remember { mutableStateOf(false) }
+    var quantityError by remember { mutableStateOf(false) }
+    var commentError by remember { mutableStateOf(false) }
+
+    // Функция для проверки всех полей
+    fun validateFields(): Boolean {
+        // Проверка всех полей
+        val isReasonValid = selectedReason.isNotEmpty()
+        val isQuantityValid = quantity.isNotEmpty() && quantity.toIntOrNull() != null && quantity.toInt() > 0
+        val isCommentValid = comment.isNotEmpty()
+
+        reasonError = !isReasonValid
+        quantityError = !isQuantityValid
+        commentError = !isCommentValid
+
+        return isReasonValid && isQuantityValid && isCommentValid
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Причины исключения") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Выберите причину:", style = MaterialTheme.typography.labelLarge)
-
-                Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                    OutlinedTextField(
-                        value = selectedReason,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Причина") },
-                        trailingIcon = {
-                            IconButton(onClick = { expanded = !expanded }) {
-                                Icon(
-                                    imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        reasons.forEach { reason ->
-                            DropdownMenuItem(
-                                text = { Text(reason) },
-                                onClick = {
-                                    selectedReason = reason
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text("Количество (обязательно):", style = MaterialTheme.typography.labelLarge)
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { quantity = it },
-                    placeholder = { Text("Введите количество...") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                // Поле для выбора причины исключения
+                ReasonSelector(
+                    reasons = reasons,
+                    selectedReason = selectedReason,
+                    onReasonChange = { selectedReason = it },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    isError = reasonError
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Комментарий (необязательно):", style = MaterialTheme.typography.labelLarge)
-                OutlinedTextField(
-                    value = comment,
-                    onValueChange = { comment = it },
-                    placeholder = { Text("Введите комментарий...") },
-                    modifier = Modifier.fillMaxWidth()
+                // Поле для ввода количества
+                QuantityInput(
+                    quantity = quantity,
+                    onQuantityChange = { quantity = it },
+                    isError = quantityError
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Поле для комментария
+                CommentInput(
+                    comment = comment,
+                    onCommentChange = { comment = it },
+                    isError = commentError
                 )
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onConfirm(selectedReason, comment, quantity)
-                onDismiss()
-            }) {
+            Button(
+                onClick = {
+                    if (validateFields()) {
+                        onConfirm(selectedReason, comment, quantity)
+                        onDismiss()
+                    }
+                }
+            ) {
                 Text("ОК")
             }
         },
@@ -97,4 +93,104 @@ fun ExcludeArticleDialog(
             }
         }
     )
+}
+
+@Composable
+fun ReasonSelector(
+    reasons: List<String>,
+    selectedReason: String,
+    onReasonChange: (String) -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    isError: Boolean
+) {
+    Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        OutlinedTextField(
+            value = selectedReason,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Причина") },
+            trailingIcon = {
+                IconButton(onClick = { onExpandedChange(!expanded) }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = null
+                    )
+                }
+            },
+            isError = isError,
+            modifier = Modifier.fillMaxWidth()
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
+        ) {
+            reasons.forEach { reason ->
+                DropdownMenuItem(
+                    text = { Text(reason) },
+                    onClick = {
+                        onReasonChange(reason)
+                        onExpandedChange(false)
+                    }
+                )
+            }
+        }
+    }
+    if (isError) {
+        Text(
+            text = "Выберите причину!",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun QuantityInput(
+    quantity: String,
+    onQuantityChange: (String) -> Unit,
+    isError: Boolean
+) {
+    OutlinedTextField(
+        value = quantity,
+        onValueChange = onQuantityChange,
+        label = { Text("Количество (обязательно)") },
+        placeholder = { Text("Введите количество...") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        isError = isError,
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (isError) {
+        Text(
+            text = "Введите количество (целое число больше 0)!",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun CommentInput(
+    comment: String,
+    onCommentChange: (String) -> Unit,
+    isError: Boolean
+) {
+    OutlinedTextField(
+        value = comment,
+        onValueChange = onCommentChange,
+        label = { Text("Комментарий (необязательно)") },
+        placeholder = { Text("Введите комментарий...") },
+        isError = isError,
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (isError) {
+        Text(
+            text = "Комментарий не может быть пустым!",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+    }
 }

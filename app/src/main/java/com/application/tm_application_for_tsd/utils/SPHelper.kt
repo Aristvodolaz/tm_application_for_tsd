@@ -15,6 +15,7 @@ class SPHelper(context: Context) {
         private const val PREF = "pref"
         private const val SHK_BOX = "shk_box"
         private const val VLOZHENNOST_BOX = "vlozh_box"
+        private const val VLOZHENNOST_FULL = "vlozh_full"
         private const val SHK_PALLET = "shk_pallet"
         private const val ID = "id"
 
@@ -94,6 +95,13 @@ class SPHelper(context: Context) {
     }
     fun getVlozh(): Int {
         return sharedPreferences.getInt(VLOZHENNOST_BOX, 0)
+    }
+
+    fun setVlozhFull(vlozh: Int){
+        sharedPreferences.edit().putInt(VLOZHENNOST_FULL, vlozh).apply()
+    }
+    fun getVlozhFull(): Int {
+        return sharedPreferences.getInt(VLOZHENNOST_FULL, 0)
     }
 
     fun setId(id: Long){

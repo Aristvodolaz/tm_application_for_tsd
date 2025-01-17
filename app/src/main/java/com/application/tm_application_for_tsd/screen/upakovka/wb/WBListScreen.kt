@@ -28,16 +28,44 @@ fun WBListScreen(
     toDone: () -> Unit
 ) {
     val uiState by wbViewModel.uiState.collectAsState()
-    var showExcludeDialog by remember { mutableStateOf(false) }
+    val errorMessage by wbViewModel.errorMessage.collectAsState()
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
-    val snackbarHostState = remember { SnackbarHostState() } // Создаем состояние для Snackbar
-    val errorMessage by wbViewModel.errorMessage.collectAsState() // Подписываемся на ошибку
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showExcludeDialog by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
+
+    LaunchedEffect(wbViewModel.successMessage.collectAsState().value) {
+        wbViewModel.successMessage.value?.let { successMessage ->
+            snackbarHostState.showSnackbar(successMessage)
+            toScanBox()
+            wbViewModel.resetsuccessMessage()
+        }
+    }
+
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is WBViewModel.UiState.Success -> {
+                if (!isNavigating) {
+                    isNavigating = true
+                    snackbarHostState.showSnackbar("Задание успешно закрыто!")
+                    toDone()
+                    wbViewModel.resetSuccessState()
+                }
+            }
+            is WBViewModel.UiState.Error -> {
+                val error = (uiState as WBViewModel.UiState.Error).message
+                snackbarHostState.showSnackbar(error)
+                wbViewModel.resetError()
+            }
+            else -> Unit
+        }
+    }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            wbViewModel.resetError() // Сброс сообщения об ошибке после показа
+            wbViewModel.resetError()
         }
     }
 
@@ -48,7 +76,7 @@ fun WBListScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) } // Добавляем SnackbarHost в Scaffold
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -59,21 +87,14 @@ fun WBListScreen(
                 is WBViewModel.UiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                is WBViewModel.UiState.Error -> {
-                    val errorMessage = (uiState as WBViewModel.UiState.Error).message
-                    LaunchedEffect(errorMessage) {
-                        snackbarHostState.showSnackbar(errorMessage)
-                    }
-                }
                 is WBViewModel.UiState.Loaded -> {
                     val loadedState = uiState as WBViewModel.UiState.Loaded
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        // Название товара и количество
                         item {
                             Column {
                                 Text(
@@ -84,14 +105,19 @@ fun WBListScreen(
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
                                 Text(
-                                    text = "Количество штук: ${loadedState.totalCount}",
+                                    text = "Количество коробов: ${loadedState.totalCount}",
                                     fontSize = 16.sp,
-                                    modifier = Modifier.padding(bottom = 16.dp)
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+
+                                Text(
+                                    text = "Количество: ${loadedState.totalCountKolvo} из ${spHelper.getVlozhFull()}",
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
                                 )
                             }
                         }
 
-                        // Список коробов
                         items(loadedState.boxes) { box ->
                             Card(
                                 modifier = Modifier
@@ -100,30 +126,20 @@ fun WBListScreen(
                                 elevation = CardDefaults.elevatedCardElevation(4.dp)
                             ) {
                                 Column(modifier = Modifier.padding(4.dp)) {
-                                    Text(
-                                        text = "Короб: ${box.shkWps}",
-                                        fontSize = 14.sp
-                                    )
-                                    Text(
-                                        text = "Паллет: ${box.palletNo}",
-                                        fontSize = 14.sp
-                                    )
-                                    Text(
-                                        text = "Вложенность: ${box.kolvoTovarov}",
-                                        fontSize = 14.sp
-                                    )
+                                    Text("Короб: ${box.shkWps}", fontSize = 14.sp)
+                                    Text("Паллет: ${box.palletNo}", fontSize = 14.sp)
+                                    Text("Вложенность: ${box.kolvoTovarov}", fontSize = 14.sp)
                                 }
                             }
                         }
 
-                        // Кнопки управления
                         item {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Button(
-                                    onClick = { toScanBox() },
+                                    onClick = { wbViewModel.checkBox() },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                                 ) {
@@ -131,9 +147,7 @@ fun WBListScreen(
                                 }
 
                                 Button(
-                                    onClick = {
-                                        wbViewModel.checkOrderCompletionBeforeClosing()
-                                    },
+                                    onClick = { wbViewModel.checkOrderCompletionBeforeClosing() },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                                 ) {
@@ -145,19 +159,13 @@ fun WBListScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                                 ) {
-                                    Text("Исключить артикул из обработки", color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+                                    Text("Исключить артикул из обработки", color = Color.White, fontSize = 14.sp)
                                 }
                             }
                         }
                     }
                 }
-
-                WBViewModel.UiState.Success -> {
-                    toDone()
-                    LaunchedEffect("Task completed successfully") {
-                        snackbarHostState.showSnackbar("Задание успешно закрыто!")
-                    }
-                }
+                else -> {}
             }
 
             if (showExcludeDialog) {

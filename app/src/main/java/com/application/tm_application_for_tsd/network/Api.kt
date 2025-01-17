@@ -1,12 +1,15 @@
 package com.application.tm_application_for_tsd.network
 
 import com.application.tm_application_for_tsd.network.request_response.AddBox
+import com.application.tm_application_for_tsd.network.request_response.AddTaskDataRequest
+import com.application.tm_application_for_tsd.network.request_response.AddTaskDataResponse
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.network.request_response.AuthResponse
 import com.application.tm_application_for_tsd.network.request_response.ChooseOp
 import com.application.tm_application_for_tsd.network.request_response.DeleteResponse
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.GetSizeOtkaz
+import com.application.tm_application_for_tsd.network.request_response.GetTransferNumsDataResponse
 import com.application.tm_application_for_tsd.network.request_response.Pallet
 import com.application.tm_application_for_tsd.network.request_response.PalletList
 import com.application.tm_application_for_tsd.network.request_response.ShkInDb
@@ -14,6 +17,7 @@ import com.application.tm_application_for_tsd.network.request_response.Sklad
 import com.application.tm_application_for_tsd.network.request_response.SrokGodnosti
 import com.application.tm_application_for_tsd.network.request_response.Task
 import com.application.tm_application_for_tsd.network.request_response.Universal
+import com.application.tm_application_for_tsd.network.request_response.UpdateStatusRequest
 import com.application.tm_application_for_tsd.network.request_response.WBBox
 import com.application.tm_application_for_tsd.network.request_response.WBData
 import com.application.tm_application_for_tsd.network.request_response.WBPrivyazka
@@ -99,10 +103,13 @@ interface Api {
     suspend fun checkWps(@Query("name") taskName: String, @Query("shk") shk: String): Universal
 
     @POST("/privyazka/endStatusNew")
-    suspend fun endStatusWb(@Query("id") id: Long): WBBox
+    suspend fun endStatusWb(@Query("id") id: Long, @Query("time") time: String): Universal
 
     @POST("/privyazka/addSrokGodnosti")
     suspend fun addSrokGodnostiForWb(@Body data: SrokGodnosti): Universal
+
+    @POST("/market/new/sendEndData")
+    suspend fun addEndStatus(@Body data: UpdateStatusRequest): Universal
 
     @GET("/privyazka/getData")
     suspend fun getDataWb(@Query("name") name: String): WBData
@@ -119,8 +126,12 @@ interface Api {
 
     @POST("/market/otkaz/")
     suspend fun setFactSize(@Query("id") id: Long, @Query("count") count: Int): Universal
-//    @POST("/market/otkaz/")
-//    suspend fun setFactSize(@Query("id") id: Long, @Query("count") count: Int, @Query("factVp") factVp: Int): Universal
+    @POST("/market/otkaz/addTaskData")
+    suspend fun addTaskData(@Body data: AddTaskDataRequest): AddTaskDataResponse
+
+    @GET("/market/otkaz/getTransferData")
+    suspend fun getTransferNumsData(@Query("transfer_nums") transferNums: String, @Query("artikul") artikul: String): GetTransferNumsDataResponse
+
     @GET("/market/otkaz/getSum")
     suspend fun getVPSize(@Query("item_num") id: String, @Query("transfer_num") count: String): GetSizeOtkaz
 
@@ -129,4 +140,8 @@ interface Api {
 
     @GET("/market/new/checkOrderCompletionOzon")
     suspend fun checkOZONComplect(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
+
+    @GET("/market/new/checkOrderCompletionWBBox")
+    suspend fun checkOrderCompletionWBBox(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
+
 }

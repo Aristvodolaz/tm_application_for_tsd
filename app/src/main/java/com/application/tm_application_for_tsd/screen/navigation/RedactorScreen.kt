@@ -100,7 +100,7 @@ fun RedactorScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Поиск по названию или артикулу") },
+            label = { Text("Поиск") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)

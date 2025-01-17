@@ -1,5 +1,6 @@
 package com.application.tm_application_for_tsd
 
+import OtkazScreen
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -53,7 +54,6 @@ import com.application.tm_application_for_tsd.screen.navigation.UpakovkaScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.CheckShkScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoArticleScreen
 import com.application.tm_application_for_tsd.screen.obrabotka.InfoSyryoScreen
-import com.application.tm_application_for_tsd.screen.otkaz.OtkazScreen
 import com.application.tm_application_for_tsd.screen.upakovka.OzonScreen
 import com.application.tm_application_for_tsd.screen.upakovka.wb.WBBoxScreen
 import com.application.tm_application_for_tsd.screen.upakovka.wb.WBListScreen
@@ -278,6 +278,8 @@ fun TSDApplication(
                 val article =
                     navController.previousBackStackEntry?.savedStateHandle?.get<Article.Articuls>("article")
                 if (article != null) {
+                    spHelper.setVlozhFull(article.itogZakaz!!.toInt())
+
                     if (article.status == 3) {
                         spHelper.getTaskName()?.let {
                             article.id?.let { it1 ->

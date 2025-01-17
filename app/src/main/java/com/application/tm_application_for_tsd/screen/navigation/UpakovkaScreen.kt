@@ -47,41 +47,45 @@ fun UpakovkaScreen(
     val context = LocalContext.current
 
     // Загружаем данные при запуске экрана
-    LaunchedEffect(taskName) {
-        try {
+    LaunchedEffect(Unit) {
+        if (articles.isEmpty()) {
             isLoading = true
-            articles = viewModel.getTasksInWork(taskName, 3).articuls
-            filteredArticles = articles // Изначально отображаем все записи
-        } catch (e: Exception) {
-            Toast.makeText(context, "Ошибка загрузки: ${e.message}", Toast.LENGTH_SHORT).show()
-        } finally {
-            isLoading = false
+            try {
+                articles = viewModel.getTasksInWork(taskName, 3).articuls
+                filteredArticles = articles
+            } catch (e: Exception) {
+                Toast.makeText(context, "Ошибка загрузки: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
+            }
         }
     }
 
-    // Фильтрация при изменении штрих-кода
+    // Фильтрация данных по штрих-коду
     LaunchedEffect(scannedBarcode) {
         if (scannedBarcode.isNotEmpty()) {
             filteredArticles = articles.filter {
                 it.shk?.contains(scannedBarcode) == true || it.shkSyrya?.contains(scannedBarcode) == true ||
-                        it.shkWps?.contains(scannedBarcode) == true
+                        it.shkSyrya?.contains(scannedBarcode) == true
             }
-            scannerViewModel.clearBarcode()
-
         }
+        scannerViewModel.clearBarcode()
+
     }
 
-    // Фильтрация при изменении поискового запроса
+    // Фильтрация по поисковому запросу
     LaunchedEffect(searchQuery) {
-        val query = searchQuery
-        filteredArticles = articles.filter {
-            it.nazvanieTovara?.contains(query, ignoreCase = true) == true ||
-                    it.artikulSyrya?.contains(query, ignoreCase = true) == true ||
-                    it.artikul?.toString()?.contains(query) == true ||
-                    it.shk?.contains(query) == true ||
-                    it.shkSyrya?.contains(query) == true
+        filteredArticles = articles.filter { article ->
+            article.nazvanieTovara?.contains(searchQuery, ignoreCase = true) == true ||
+                    article.artikul?.toString()?.contains(searchQuery) == true ||
+                    article.artikulSyrya?.contains(searchQuery) == true ||
+                    article.shk?.contains(searchQuery) == true ||
+                    article.shkSyrya?.contains(searchQuery) == true ||
+                    article.shkWps?.contains(searchQuery) == true
+
         }
     }
+
 
     // UI отображение
     Column(

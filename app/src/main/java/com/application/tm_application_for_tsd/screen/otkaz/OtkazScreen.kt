@@ -1,41 +1,27 @@
-package com.application.tm_application_for_tsd.screen.otkaz
-
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.tm_application_for_tsd.network.request_response.Article
 import com.application.tm_application_for_tsd.utils.SPHelper
 import com.application.tm_application_for_tsd.viewModel.OtkazViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtkazScreen(
@@ -45,21 +31,26 @@ fun OtkazScreen(
     toNextScreen: () -> Unit
 ) {
     var vlozhennost by remember { mutableStateOf("") }
+    var summa by remember { mutableStateOf("") }
+    var artikul by remember { mutableStateOf("") }
     var isInputValid by remember { mutableStateOf(true) }
     val otkazState by otkazViewModel.otkazState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Show Snackbar messages based on state
+    LaunchedEffect(Unit) {
+        artikul = article.artikulSyrya?.toString() ?: article.artikul.toString()
+        otkazViewModel.getTransferSize(article.vp.toString(), artikul)
+    }
+
     LaunchedEffect(otkazState) {
         when (val state = otkazState) {
-            is OtkazViewModel.OtkazState.Error -> {
-                snackbarHostState.showSnackbar(state.message)
-            }
+            is OtkazViewModel.OtkazState.Error -> snackbarHostState.showSnackbar(state.message)
             is OtkazViewModel.OtkazState.Success -> {
                 snackbarHostState.showSnackbar(state.message)
-                toNextScreen() // Proceed to the next screen upon success
+                toNextScreen()
             }
+            is OtkazViewModel.OtkazState.SuccessVP -> summa = state.sum.toString()
             else -> {}
         }
     }
@@ -67,79 +58,125 @@ fun OtkazScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("ВП ${article.vp}", fontSize = 16.sp) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                title = {
+                    Text(
+                        text = "Приемка: ВП ${article.vp}",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF5F5F5))
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Информация о товаре
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = article.nazvanieTovara ?: "Нет названия",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Артикул: ${article.artikul}", fontSize = 16.sp, color = Color.Gray)
+                        Text("ШК: ${article.shk}", fontSize = 16.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        Text("Количество по ВП:", fontSize = 16.sp, color = Color.Gray)
+                        Text(summa, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
 
-            Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-                // Display Article Information
-                Text("${article.nazvanieTovara}", fontSize = 18.sp, maxLines = 2, fontWeight = FontWeight.Bold)
-                Text("Артикул: ${article.artikul}", fontSize = 16.sp)
-                Text("ШК: ${article.shk}", fontSize = 16.sp)
+                        var plans = if(article.kolVoSyrya!=null)
+                            article.kolVoSyrya.toInt()
+                        else article.itogZakaz!!.toInt()
 
-                Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "План заявки (ожидаемое): ${plans ?: "Нет данных"}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        )
+                    }
+                }
 
-                // Display planned quantity information
-                Text("Количество ПЛАН (ожидаемое):", fontSize = 16.sp, color = Color.Gray)
-                article.planOtkaz?.let { Text(it, fontSize = 18.sp) }
-//                if (article.kolVoSyrya != null) {
-//                    Text(article.kolVoSyrya.toString(), fontSize = 18.sp)
-//                } else {
-//                    Text(article.itogZakaz.toString(), fontSize = 18.sp)
-//                }
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Input for actual quantity
-                Text("Количество ФАКТ (фактическое):", fontSize = 16.sp, color = Color.Gray)
+                // Ввод фактического количества
                 OutlinedTextField(
                     value = vlozhennost,
                     onValueChange = {
                         vlozhennost = it
                         isInputValid = it.toIntOrNull() != null && it.toInt() > 0
                     },
-                    placeholder = { Text("Например: 5") },
+                    placeholder = { Text("Введите количество, например: 5") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = !isInputValid,
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                        .padding(top = 8.dp),
+                        .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp)),
                 )
 
-                // Display error message if input is invalid
                 if (!isInputValid && vlozhennost.isNotEmpty()) {
-                    Text(
-                        text = "Пожалуйста, введите корректное количество.",
-                        color = Color.Red,
-                        fontSize = 14.sp,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 8.dp)
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Ошибка",
+                            tint = Color.Red
+                        )
+                        Text(
+                            text = "Введите корректное количество.",
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Submit Button
+                // Кнопка подтверждения
                 Button(
                     onClick = {
                         if (isInputValid) {
-//                            article.vp?.let {
-//                                otkazViewModel.getFactVp(spHelper.getId(), vlozhennost.toInt(),
-//                                    it, article.artikul.toString()
-//                                )
-//                            }
-                            otkazViewModel.sendFactSize(spHelper.getId(), vlozhennost.toInt())
+                            article.nazvanieZadaniya?.let { name ->
+                                article.vp?.let { vp ->
+                                    otkazViewModel.addInfoVP(name, artikul, vp, summa.toInt(), vlozhennost.toInt(), article.id!!.toLong())
+                                }
+                            }
                         }
                     },
                     enabled = vlozhennost.isNotEmpty() && isInputValid,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))
                 ) {
-                    Text("Завершить приемку", fontSize = 16.sp)
+                    Text("Завершить приемку", fontSize = 16.sp, color = Color.White)
                 }
             }
         }

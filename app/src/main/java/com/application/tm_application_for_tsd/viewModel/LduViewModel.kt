@@ -116,7 +116,7 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
             viewModelScope.launch {
                 try {
                     apiService.updateCheckBox(id, requestBody)
-                    //todo тут добавляется приемка , если есть == 4, если нет == 3
+                    //todo тут добавляется приемка , если есть == 4, ес ли нет == 3
                     setStatus(id, 3) { onComplete() }
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error

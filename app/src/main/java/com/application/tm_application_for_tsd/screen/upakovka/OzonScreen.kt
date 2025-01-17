@@ -60,10 +60,10 @@ fun OzonScreen(
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
     val completionError by viewModel.completionError.collectAsState()
-
+    val excludeSuccess by viewModel.excludeSuccess.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(error, successMessage, completionError) {
+    LaunchedEffect(error, successMessage, completionError, excludeSuccess) {
         error?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
@@ -78,6 +78,10 @@ fun OzonScreen(
         completionError?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
+        }
+        excludeSuccess?.let {
+            snackbarHostState.showSnackbar(it) // Показать сообщение об успешном исключении
+            viewModel.clearExcludeMessage() // Очищаем сообщение, чтобы избежать повторного вызова
         }
     }
 

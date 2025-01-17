@@ -82,6 +82,7 @@ fun ObraborkaScreen(
         filteredArticles = articles.filter { article ->
             article.nazvanieTovara?.contains(searchQuery, ignoreCase = true) == true ||
                     article.artikul?.toString()?.contains(searchQuery) == true ||
+                    article.artikulSyrya?.contains(searchQuery) == true ||
                     article.shk?.contains(searchQuery) == true ||
                     article.shkSyrya?.contains(searchQuery) == true
         }
