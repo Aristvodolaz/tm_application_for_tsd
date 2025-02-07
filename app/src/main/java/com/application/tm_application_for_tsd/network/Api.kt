@@ -10,6 +10,7 @@ import com.application.tm_application_for_tsd.network.request_response.DeleteRes
 import com.application.tm_application_for_tsd.network.request_response.FinishOzon
 import com.application.tm_application_for_tsd.network.request_response.GetSizeOtkaz
 import com.application.tm_application_for_tsd.network.request_response.GetTransferNumsDataResponse
+import com.application.tm_application_for_tsd.network.request_response.OzonRequest
 import com.application.tm_application_for_tsd.network.request_response.Pallet
 import com.application.tm_application_for_tsd.network.request_response.PalletList
 import com.application.tm_application_for_tsd.network.request_response.ShkInDb
@@ -21,6 +22,7 @@ import com.application.tm_application_for_tsd.network.request_response.UpdateSta
 import com.application.tm_application_for_tsd.network.request_response.WBBox
 import com.application.tm_application_for_tsd.network.request_response.WBData
 import com.application.tm_application_for_tsd.network.request_response.WBPrivyazka
+import com.application.tm_application_for_tsd.network.request_response.WBRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -80,6 +82,9 @@ interface Api {
     @PUT("/market/new/updateShk")
     suspend fun updateShk(@Query("id") id: Long, @Query("newSHK") newSHK: String): Universal
 
+    @POST("/send/setFinishStatus")
+    suspend fun setFinishStatus(@Query("id") id: Long , @Query("time") time: String): Universal
+
     @POST("/send/update")
     suspend fun finishedSend(@Body data: FinishOzon): Universal
 
@@ -117,7 +122,9 @@ interface Api {
     @POST("/send/updateNew")
     suspend fun updateOzon(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
                            @Query("palletNo") palletNo: Int, @Query("time") time: String): Universal
-
+    @POST("/send/updateOrAdd")
+    suspend fun updateOzonNew(@Query("id") id: Long, @Query("mesto") mesto: Int, @Query("vlozhennost") vlozhennost: Int,
+                           @Query("palletNo") palletNo: Int, @Query("time") time: String): Universal
     @POST("/market/tasks/updateStatusForID")
     suspend fun updateStatus(@Query("id") id: Long, @Query("status") status: Int): Universal
 
@@ -143,5 +150,11 @@ interface Api {
 
     @GET("/market/new/checkOrderCompletionWBBox")
     suspend fun checkOrderCompletionWBBox(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
+
+    @POST("/market/otkaz/addRecordForWB")
+    suspend fun addRecordForWB(@Body request: WBRequest):Universal
+
+    @POST("/market/otkaz/addRecordForOZON")
+    suspend fun addRecordForOZON(@Body request: OzonRequest): Universal
 
 }

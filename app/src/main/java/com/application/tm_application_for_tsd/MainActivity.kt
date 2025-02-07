@@ -295,6 +295,7 @@ fun TSDApplication(
                     } else {
                         OtkazScreen(article, spHelper = spHelper, toNextScreen = {
                             article.id?.let { it1 -> spHelper.setId(it1) }
+                            spHelper.setItogZakaz(article.itogZakaz)
                             navController.navigate("show_ldu_after_updakovka")
                         })
 

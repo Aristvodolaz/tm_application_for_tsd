@@ -66,9 +66,18 @@ class EditLduViewModel @Inject constructor(
                             else -> null
                         }
                     }
-                    ActionItem(name, if (value == "V") "1" else {
-                        value?.toString() ?: "0"
-                    })
+                    when (value) {
+                        "V" -> {
+                            ActionItem(name, "1")
+                        }
+                        null -> {
+                            ActionItem(name, "0")
+
+                        }
+                        else -> {
+                            ActionItem(name,value.toString())
+                        }
+                    }
                 }
 
                 _uiState.value = UiState.Loaded(actions)

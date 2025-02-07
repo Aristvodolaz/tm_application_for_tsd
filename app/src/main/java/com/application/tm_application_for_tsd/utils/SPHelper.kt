@@ -18,7 +18,7 @@ class SPHelper(context: Context) {
         private const val VLOZHENNOST_FULL = "vlozh_full"
         private const val SHK_PALLET = "shk_pallet"
         private const val ID = "id"
-
+        private const val ITOG_ZAKAZ = "itog_zakaz"
         private const val SIZE = "size"
     }
 
@@ -102,6 +102,13 @@ class SPHelper(context: Context) {
     }
     fun getVlozhFull(): Int {
         return sharedPreferences.getInt(VLOZHENNOST_FULL, 0)
+    }
+
+    fun setItogZakaz(vlozh: Int){
+        sharedPreferences.edit().putInt(ITOG_ZAKAZ, vlozh).apply()
+    }
+    fun getItogZakaz(): Int {
+        return sharedPreferences.getInt(ITOG_ZAKAZ, 0)
     }
 
     fun setId(id: Long){

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.tm_application_for_tsd.network.Api
 import com.application.tm_application_for_tsd.network.request_response.AddBox
 import com.application.tm_application_for_tsd.network.request_response.Box
+import com.application.tm_application_for_tsd.network.request_response.WBRequest
 import com.application.tm_application_for_tsd.utils.SPHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -126,21 +127,63 @@ class WBViewModel @Inject constructor(
         }
     }
 
-    fun addBox(vlozh: Int, wps: String, pallet: String) {
-        viewModelScope.launch {
-            try {
-                val taskName = spHelper.getTaskName() ?: "Неизвестное название задания"
-                val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
+//    fun addBox(vlozh: Int, wps: String, pallet: String) {
+//        viewModelScope.launch {
+//            try {
+//                val taskName = spHelper.getTaskName() ?: "Неизвестное название задания"
+//                val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: -1
+//
+//                if (artikul == -1) {
+//                    _uiState.value = UiState.Error("Ошибка артикула")
+//                    return@launch
+//                }
+//
+//                api.addBox( AddBox( taskName, artikul,vlozh, pallet,wps ))
+//                _uiState.value = UiState.Success
+//            } catch (e: Exception) {
+//                _uiState.value = UiState.Error("Ошибка: ${e.localizedMessage}")
+//            }
+//        }
+//    }
 
-                if (artikul == -1) {
-                    _uiState.value = UiState.Error("Ошибка артикула")
+
+    fun addBox(kolvoTovarov: Int, shkWps: String, palletNo: String) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            _errorMessage.value = null
+            _successMessage.value = null
+
+            try {
+                val taskName = spHelper.getTaskName() ?: throw Exception("Название задания отсутствует")
+                val artikul = spHelper.getArticuleWork()?.toIntOrNull() ?: throw Exception("Артикул не найден")
+
+                // Проверка введенных значений
+                if (kolvoTovarov <= 0 || shkWps.isEmpty() || palletNo.isEmpty()) {
+                    _errorMessage.value = "Ошибка: некорректные данные для отправки."
                     return@launch
                 }
 
-                api.addBox( AddBox( taskName, artikul,vlozh, pallet,wps ))
-                _uiState.value = UiState.Success
+                // Формируем объект запроса
+                val request = WBRequest(
+                    nazvanieZadaniya = taskName,
+                    artikul = artikul,
+                    kolvoTovarov = kolvoTovarov,
+                    shkWps = shkWps,
+                    palletNo = palletNo
+                )
+
+                // Отправляем запрос в API
+                val response = api.addRecordForWB(request)
+
+                if (response.success) {
+                    _successMessage.value = "Запись успешно добавлена в WB."
+                } else {
+                    _errorMessage.value = "Ошибка добавления записи."
+                }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error("Ошибка: ${e.localizedMessage}")
+                _errorMessage.value = "Ошибка: ${e.message}"
+            } finally {
+                _uiState.value = UiState.Success
             }
         }
     }

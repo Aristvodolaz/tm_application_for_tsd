@@ -14,6 +14,7 @@ data class GetTransferNumsDataResponse(
     val success: Boolean,          // Успех выполнения
     val value: List<TransferData>, // Список данных из таблицы
     val sum: Int,
+    val factSum: Int,
     val errorCode: Int             // Код ошибки или 200 при успехе
 )
 

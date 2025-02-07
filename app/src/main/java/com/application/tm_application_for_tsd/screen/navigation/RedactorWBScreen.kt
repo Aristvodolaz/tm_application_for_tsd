@@ -39,7 +39,6 @@ fun RedactorWBScreen(
         redactorWBViewModel.getData(taskName)
     }
 
-    // Обновляем filteredArticles при изменении articles, searchQuery или scannedBarcode
     LaunchedEffect(articles, searchQuery, scannedBarcode) {
         filteredArticles = articles.filter { article ->
             (scannedBarcode.isNotEmpty() && (
@@ -159,7 +158,7 @@ fun ArticleRedactorForWBCard(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Вложеноость: ${article.kolvo}",
+                        text = "Вложеность: ${article.kolvo}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )

@@ -53,9 +53,7 @@ fun OzonScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
     var showIsklDialog by remember { mutableStateOf(false) }
-    var showNonStandardSuccess by remember { mutableStateOf(false) } // Флаг для отображения успеха вложенности
 
     val context = LocalContext.current
     val reasons = context.resources.getStringArray(R.array.cancel_reasons).toList()
@@ -70,9 +68,6 @@ fun OzonScreen(
         }
         successMessage?.let {
             snackbarHostState.showSnackbar(it)
-            if (!viewModel.isNonStandardAction.value) {  // Переход только при обычной записи
-                toNextScreen()
-            }
             viewModel.clearMessages()
         }
         completionError?.let {
@@ -116,6 +111,7 @@ fun OzonScreen(
                     Text("${spHelper.getNameStuffWork()}", fontSize = 16.sp)
                     Text("Артикул: ${spHelper.getArticuleWork()} ", fontSize = 14.sp)
                     Text("ШК: ${spHelper.getShkWork()}", fontSize = 14.sp)
+                    Text(text = "Кол-во товара:${spHelper.getItogZakaz()}", fontSize = 14.sp)
                 }
             }
 
@@ -143,7 +139,7 @@ fun OzonScreen(
 
             // Кнопки
             Button(
-                onClick = { viewModel.sendFinishData() },
+                onClick = { viewModel.addRecordForOZON() },
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 modifier = Modifier
@@ -153,24 +149,26 @@ fun OzonScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
                 } else {
-                    Text("Записать", color = Color.White, fontSize = 16.sp)
+                    Text("Добавить", color = Color.White, fontSize = 16.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
+
             Button(
-                onClick = { showDialog = true },
+                onClick = { viewModel.setStatus(spHelper.getId(), onComplete = { toNextScreen() })},
                 enabled = !isLoading,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
             ) {
-                Text("Нестандартная вложенность", color = Color.White, fontSize = 16.sp)
+                Text("Завершить упаковку", color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = { showIsklDialog = true },
@@ -184,19 +182,6 @@ fun OzonScreen(
             }
         }
 
-        // Диалоговые окна
-        if (showDialog) {
-            NonStandardDialog(
-                onDismiss = { showDialog = false },
-                onConfirm = { nested, place, pallet ->
-                    viewModel.saveNonStandardData(nested, place, pallet) // Сохранение данных
-                    showDialog = false // Закрываем только диалог, экран остается
-                }
-            )
-        }
-
-
-
         if (showIsklDialog) {
             ExcludeArticleDialog(
                 reasons = reasons,
@@ -207,56 +192,8 @@ fun OzonScreen(
                 }
             )
         }
-    }
 }
 
-
-@Composable
-fun NonStandardDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (nested: String, place: String, pallet: String) -> Unit
-) {
-    var nested by remember { mutableStateOf("") }
-    var place by remember { mutableStateOf("") }
-    var pallet by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Нестандартная вложенность") },
-        text = {
-            Column {
-                CustomTextField(
-                    label = "Вложенность",
-                    example = "Пример: 1",
-                    state = nested,
-                    onValueChange = { nested = it }
-                )
-                CustomTextField(
-                    label = "Место",
-                    example = "Пример: 2",
-                    state = place,
-                    onValueChange = { place = it }
-                )
-                CustomTextField(
-                    label = "Паллет",
-                    example = "Пример: 3",
-                    state = pallet,
-                    onValueChange = { pallet = it }
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onConfirm(nested, place, pallet) }) {
-                Text("Записать")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Отменить")
-            }
-        }
-    )
-}
 
 
 @OptIn(ExperimentalMaterial3Api::class)

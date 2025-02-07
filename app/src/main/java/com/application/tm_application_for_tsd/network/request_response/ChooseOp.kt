@@ -40,7 +40,7 @@ data class LDUValue(
     @SerializedName("Op_9_Fasovka_Sborka")
     val op9FasovkaSborka: String? = null,
 
-    @SerializedName("Op_10_Markiroвka_SHT")
+    @SerializedName("Op_10_Markirovka_SHT")
     val op10MarkirovkaSHT: String? = null,
 
     @SerializedName("Op_11_Markiroвka_Prom")
