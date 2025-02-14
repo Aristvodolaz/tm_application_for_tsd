@@ -75,12 +75,10 @@ fun OzonScreen(
             viewModel.clearMessages()
         }
         excludeSuccess?.let {
-            snackbarHostState.showSnackbar(it) // Показать сообщение об успешном исключении
-            viewModel.clearExcludeMessage() // Очищаем сообщение, чтобы избежать повторного вызова
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearExcludeMessage()
         }
     }
-
-
 
     Scaffold(
         topBar = {
@@ -101,7 +99,6 @@ fun OzonScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Отображение товарной информации
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,11 +108,10 @@ fun OzonScreen(
                     Text("${spHelper.getNameStuffWork()}", fontSize = 16.sp)
                     Text("Артикул: ${spHelper.getArticuleWork()} ", fontSize = 14.sp)
                     Text("ШК: ${spHelper.getShkWork()}", fontSize = 14.sp)
-                    Text(text = "Кол-во товара:${spHelper.getItogZakaz()}", fontSize = 14.sp)
+                    Text("Кол-во товара: ${spHelper.getVlozhFull()}", fontSize = 14.sp)
                 }
             }
 
-            // Поля ввода
             CustomTextField(
                 label = "Вложенность",
                 example = "Пример: 1",
@@ -137,7 +133,6 @@ fun OzonScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Кнопки
             Button(
                 onClick = { viewModel.addRecordForOZON() },
                 enabled = !isLoading,
@@ -155,9 +150,8 @@ fun OzonScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Button(
-                onClick = { viewModel.setStatus(spHelper.getId(), onComplete = { toNextScreen() })},
+                onClick = { viewModel.setStatus(spHelper.getId(), onComplete = { toNextScreen() }) },
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 modifier = Modifier
@@ -166,10 +160,10 @@ fun OzonScreen(
             ) {
                 Text("Завершить упаковку", color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // Кнопка исключения артикула теперь точно видна
             Button(
                 onClick = { showIsklDialog = true },
                 enabled = !isLoading,
@@ -181,19 +175,19 @@ fun OzonScreen(
                 Text("Исключить артикул из обработки", color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
             }
         }
+    }
 
-        if (showIsklDialog) {
-            ExcludeArticleDialog(
-                reasons = reasons,
-                onDismiss = { showIsklDialog = false },
-                onConfirm = { reason, comment, size ->
-                    viewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt())
-                    showIsklDialog = false
-                }
-            )
-        }
+    if (showIsklDialog) {
+        ExcludeArticleDialog(
+            reasons = reasons,
+            onDismiss = { showIsklDialog = false },
+            onConfirm = { reason, comment, size ->
+                viewModel.excludeArticle(spHelper.getId(), reason, comment, size.toInt())
+                showIsklDialog = false
+            }
+        )
+    }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)

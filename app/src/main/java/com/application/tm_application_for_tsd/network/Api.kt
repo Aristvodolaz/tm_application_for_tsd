@@ -151,10 +151,13 @@ interface Api {
     @GET("/market/new/checkOrderCompletionWBBox")
     suspend fun checkOrderCompletionWBBox(@Query("nazvanie_zadaniya") name: String, @Query("articul") articul: String): Universal
 
-    @POST("/market/otkaz/addRecordForWB")
+    @POST("/market/new/addRecordForWB")
     suspend fun addRecordForWB(@Body request: WBRequest):Universal
 
-    @POST("/market/otkaz/addRecordForOZON")
+    @POST("/market/new/addRecordForOZON")
     suspend fun addRecordForOZON(@Body request: OzonRequest): Universal
-
+//    @POST("/market/otkaz/addRecordForOZON")
+//    suspend fun addRecordForOZON(@Body request: OzonRequest): Universal
+    //@POST("/market/otkaz/addRecordForWB")
+    //suspend fun addRecordForWB(@Body request: WBRequest):Universal
 }
