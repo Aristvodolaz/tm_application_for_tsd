@@ -43,13 +43,13 @@ data class LDUValue(
     @SerializedName("Op_10_Markirovka_SHT")
     val op10MarkirovkaSHT: String? = null,
 
-    @SerializedName("Op_11_Markiroвka_Prom")
+    @SerializedName("Op_11_Markirovka_Prom")
     val op11MarkirovkaProm: String? = null,
 
-    @SerializedName("Op_12_Markiroвka_Prom")
+    @SerializedName("Op_12_Markirovka_Prom")
     val op12MarkirovkaProm: String? = null,
 
-    @SerializedName("Op_13_Markiroвka_Fabr")
+    @SerializedName("Op_13_Markirovka_Fabr")
     val op13MarkirovkaFabr: String? = null,
 
     @SerializedName("Op_14_TU_1_Sht")
