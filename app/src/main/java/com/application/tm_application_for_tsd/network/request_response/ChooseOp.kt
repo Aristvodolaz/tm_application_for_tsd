@@ -97,5 +97,49 @@ data class LDUValue(
     val pechatEtiketkiSHK: String? = null,
 
     @SerializedName("Pechat_Etiketki_s_Opisaniem")
-    val pechatEtiketkiOpisaniem: String? = null
+    val pechatEtiketkiOpisaniem: String? = null,
+
+    @SerializedName("Upakovka_v_Gofro")
+    val upakovkaVGofro: String? = null,
+
+    @SerializedName("Upakovka_v_PE_Paket")
+    val upakovkaVPEPaket: String? = null,
+
+    @SerializedName("PriznakSortirovki")
+    val priznakSortirovki: String? = null,
+    @SerializedName("Vlozhit_v_upakovku_pechatnyi_material")
+    val vlozhitVUpakovkuPechatnyiMaterial: String? = null,
+
+    @SerializedName("Izmerenie_VGH_i_peredacha_informatsii")
+    val izmerenieVGHIPeredachaInformatsii: String? = null,
+
+    @SerializedName("Indeks_za_srochnost_koeff_1_5")
+    val indeksZaSrochnostKoeff15: String? = null,
+
+    @SerializedName("Kompleksnaya_priemka_tovara")
+    val kompleksnayaPriemkaTovara: String? = null,
+
+    @SerializedName("Priemka_tovara_v_transportnykh_korobakh")
+    val priemkaTovaraVTransportnykhKorobakh: String? = null,
+
+    @SerializedName("Priemka_tovara_palletnaya")
+    val priemkaTovaraPalletnaya: String? = null,
+
+    @SerializedName("Prochie_raboty_vklyuchaya_ustranenie_anomalii")
+    val prochieRabotyVklyuchayaUstranenieAnomalii: String? = null,
+
+    @SerializedName("Razbrakovka_tovara")
+    val razbrakovkaTovara: String? = null,
+
+    @SerializedName("Sborka_naborov_ot_2_shtuk_raznykh_tovarov")
+    val sborkaNaborovOt2ShtukRaznykhTovarov: String? = null,
+
+    @SerializedName("Upakovka_tovara_v_gofromeyler")
+    val upakovkaTovaraVGofromeyler: String? = null,
+
+    @SerializedName("Khranenie_tovara")
+    val khranenieTovara: String? = null
+
+
+
 )

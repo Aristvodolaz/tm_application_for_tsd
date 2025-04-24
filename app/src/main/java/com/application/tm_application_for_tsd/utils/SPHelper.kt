@@ -20,6 +20,9 @@ class SPHelper(context: Context) {
         private const val ID = "id"
         private const val ITOG_ZAKAZ = "itog_zakaz"
         private const val SIZE = "size"
+
+        private const val VLOZHENNOST_CHECK = "vlozh_check"
+        private const val MESTO_CHECK = "mesto_Check"
     }
 
     private val sharedPreferences: SharedPreferences =
@@ -130,6 +133,20 @@ class SPHelper(context: Context) {
     }
     fun getSHKPallet(): String?{
         return sharedPreferences.getString(SHK_PALLET, null)
+    }
+
+    fun setMesto(shk: String){
+        sharedPreferences.edit().putString(MESTO_CHECK, shk).apply()
+    }
+    fun getMesto(): String?{
+        return sharedPreferences.getString(MESTO_CHECK, null)
+    }
+
+    fun setVlozhennost(shk: String){
+        sharedPreferences.edit().putString(VLOZHENNOST_CHECK, shk).apply()
+    }
+    fun getVlozhennost(): String?{
+        return sharedPreferences.getString(VLOZHENNOST_CHECK, null)
     }
     // Clear all preferences
     fun clearPreferences() {

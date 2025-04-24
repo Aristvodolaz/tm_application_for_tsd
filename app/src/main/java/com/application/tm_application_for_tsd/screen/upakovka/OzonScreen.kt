@@ -109,6 +109,8 @@ fun OzonScreen(
                     Text("Артикул: ${spHelper.getArticuleWork()} ", fontSize = 14.sp)
                     Text("ШК: ${spHelper.getShkWork()}", fontSize = 14.sp)
                     Text("Кол-во товара: ${spHelper.getVlozhFull()}", fontSize = 14.sp)
+                    Text("Упаковано: ${spHelper.getMesto()} короб(а) | всего ${spHelper.getVlozhennost()} шт.", fontSize = 14.sp)
+
                 }
             }
 

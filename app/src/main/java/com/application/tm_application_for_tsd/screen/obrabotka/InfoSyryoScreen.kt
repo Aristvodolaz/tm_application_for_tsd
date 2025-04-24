@@ -66,6 +66,7 @@ fun InfoSyryoScreen(
     var showExpirationDialog by remember { mutableStateOf(false) }
     var expirationPercentage by remember { mutableStateOf(0.0) }
     var endDates by remember { mutableStateOf("") }
+    var needCheckSrokGodnosti by remember { mutableStateOf((spHelper.getPref() == "WB" && !article.srokGodnosti.isNullOrEmpty() )|| spHelper.getPref() == "OZON" || spHelper.getPref() == "ЯМ") }
 
     // Навигация на следующий экран
     LaunchedEffect(navigateToNext) {
@@ -123,40 +124,45 @@ fun InfoSyryoScreen(
                         Text("Взять в работу")
                     }
                 } else {
-                    ExpirationDateFields(
-                        startDate = startDate,
-                        onStartDateChange = { startDate = it },
-                        durationInMonths = durationInMonths,
-                        onDurationChange = { durationInMonths = it },
-                        endDate = endDate,
-                        onEndDateChange = { endDate = it },
-                        onCheckDates = {
-                            if (endDate.isNotEmpty() && isValidDateFormat(endDate)) {
-                                // Если указана только конечная дата
-                                viewModel.addExpirationData(
-                                    persent = "-",
-                                    endDate = endDate
-                                )
-                            } else if (isValidDateFormat(startDate) || (isValidDateFormat(endDate) || durationInMonths.isNotEmpty())) {
-                                val result = validateAndCalculateExpiration(startDate, endDate, durationInMonths)
-                                result?.let { (percentage, calculatedEndDate) ->
-                                    expirationPercentage = percentage
-                                    endDates = calculatedEndDate
-                                    if (percentage < 75) {
-                                        showExpirationDialog = true
-                                    } else {
-                                        if (spHelper.getPref() == "WB") viewModel.addSrokForWB(endDates)
-                                        viewModel.addExpirationData(
-                                            persent = "%.1f".format(percentage),
-                                            endDate = calculatedEndDate
-                                        )
-                                    }
-                                } ?: Toast.makeText(context, "Некорректные данные", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Введите даты в формате dd.MM.yyyy", Toast.LENGTH_SHORT).show()
+                    if (needCheckSrokGodnosti) {
+                        ExpirationDateFields(
+                            startDate = startDate,
+                            onStartDateChange = { startDate = it },
+                            durationInMonths = durationInMonths,
+                            onDurationChange = { durationInMonths = it },
+                            endDate = endDate,
+                            onEndDateChange = { endDate = it },
+                            onCheckDates = {
+                                if (endDate.isNotEmpty() && isValidDateFormat(endDate)) {
+                                    viewModel.addExpirationData(
+                                        persent = "-",
+                                        endDate = endDate
+                                    )
+                                } else if (isValidDateFormat(startDate) || (isValidDateFormat(endDate) || durationInMonths.isNotEmpty())) {
+                                    val result = validateAndCalculateExpiration(startDate, endDate, durationInMonths)
+                                    result?.let { (percentage, calculatedEndDate) ->
+                                        expirationPercentage = percentage
+                                        endDates = calculatedEndDate
+                                        if (percentage < 75) {
+                                            showExpirationDialog = true
+                                        } else {
+                                            viewModel.addExpirationData(
+                                                persent = "%.1f".format(percentage),
+                                                endDate = calculatedEndDate
+                                            )
+                                        }
+                                    } ?: Toast.makeText(context, "Некорректные данные", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Введите даты в формате dd.MM.yyyy", Toast.LENGTH_SHORT).show()
+                                }
                             }
+                        )
+                    } else {
+                        // Если срок годности не требуется, сразу переходим дальше
+                        LaunchedEffect(Unit) {
+                            onNavigateToNext()
                         }
-                    )
+                    }
                 }
 
                 Button(
@@ -181,8 +187,6 @@ fun InfoSyryoScreen(
                     ShowExpirationDialog(
                         percentagePassed = expirationPercentage,
                         onConfirm = {
-                            if (spHelper.getPref() == "WB") viewModel.addSrokForWB(endDates)
-
                             viewModel.addExpirationData(
                                 persent = "%.1f".format(expirationPercentage),
                                 endDate = endDates
@@ -190,8 +194,7 @@ fun InfoSyryoScreen(
                             showExpirationDialog = false
                         },
                         onCancel = {
-                            spHelper.getNameEmployer()
-                                ?.let { viewModel.setEndStatus(spHelper.getId(), it) }
+                            spHelper.getNameEmployer()?.let { viewModel.setEndStatus(spHelper.getId(), it) }
                             showExpirationDialog = false
                         }
                     )

@@ -81,23 +81,8 @@ class CheckShkViewModel @Inject constructor(
         }
 
     }
-//
-//    fun searchArticleInDbForSG(article: String) {
-//        viewModelScope.launch {
-//            try {
-//                val response = api.searchInDbForArticule(article)
-//                if(response.success && response.value!=null){
-//                    if(response.value[0].periodWatch == 1 && response.value[0].periodDays>0){
-//                        view.checkLastPeriodDate(response.value[0].periodDays)
-//                    } else{
-//                        view.writeLastDate()
-//                    }
-//                } else {
-//                    view.errorMessage( "Артикул не найден!")
-//                }
-//            }
-//        }
-//    }
+
+
     /**
      * Сохранение данных артикула в SharedPreferences
      */

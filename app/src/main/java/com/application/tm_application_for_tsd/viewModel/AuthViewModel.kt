@@ -37,7 +37,7 @@ class AuthViewModel @Inject constructor(
     val loading: LiveData<Boolean> get() = _loading
 
     fun authenticate(barcode: String) {
-        val trimmedBarcode = barcode.substring(1, barcode.length - 1)
+        val trimmedBarcode = barcode.substring(1, barcode.length - 2)
 
         if (trimmedBarcode.isBlank()) {
             _authStatus.value = AuthState.Error(error = "Штрих-код не может быть пустым")

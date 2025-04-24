@@ -282,6 +282,8 @@ fun TSDApplication(
 
                     if (article.status == 3) {
                         spHelper.getTaskName()?.let {
+                            spHelper.setVlozhennost(article.vlozhennost.toString())
+                            spHelper.setMesto(article.mesto.toString())
                             article.id?.let { it1 ->
                                 LduScreen(
                                     it1,
@@ -296,6 +298,8 @@ fun TSDApplication(
                         OtkazScreen(article, spHelper = spHelper, toNextScreen = {
                             article.id?.let { it1 -> spHelper.setId(it1) }
                             spHelper.setItogZakaz(article.itogZakaz)
+                            spHelper.setVlozhennost(article.vlozhennost.toString())
+                            spHelper.setMesto(article.mesto.toString())
                             navController.navigate("show_ldu_after_updakovka")
                         })
 

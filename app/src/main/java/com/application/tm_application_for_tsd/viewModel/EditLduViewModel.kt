@@ -45,7 +45,7 @@ class EditLduViewModel @Inject constructor(
                             "Op_7_Pereschyot" -> result.op7Pereschyot
                             "Op_9_Fasovka_Sborka" -> result.op9FasovkaSborka
                             "Op_10_Markirovka_SHT" -> result.op10MarkirovkaSHT
-                            "Op_11_Markirovka_Pром" -> result.op11MarkirovkaProm
+                            "Op_11_Markirovka_Prom" -> result.op11MarkirovkaProm
                             "Op_13_Markirovka_Fabr" -> result.op13MarkirovkaFabr
                             "Op_14_TU_1_Sht" -> result.op14TU1Sht
                             "Op_15_TU_2_Sht" -> result.op15TU2Sht
@@ -63,6 +63,21 @@ class EditLduViewModel @Inject constructor(
                             "Yuvelirnye_Izdelia" -> result.yuvelirnyeIzdelia
                             "Pechat_Etiketki_s_SHK" -> result.pechatEtiketkiSHK
                             "Pechat_Etiketki_s_Opisaniem" -> result.pechatEtiketkiOpisaniem
+                            "Upakovka_v_Gofro" -> result.upakovkaVGofro
+                            "Upakovka_v_PE_Paket" -> result.upakovkaVPEPaket
+                            "PriznakSortirovki" -> result.priznakSortirovki
+                            "Vlozhit_v_upakovku_pechatnyi_material" -> result.vlozhitVUpakovkuPechatnyiMaterial
+                            "Izmerenie_VGH_i_peredacha_informatsii" -> result.izmerenieVGHIPeredachaInformatsii
+                            "Indeks_za_srochnost_koeff_1_5" -> result.indeksZaSrochnostKoeff15
+                            "Kompleksnaya_priemka_tovara" -> result.kompleksnayaPriemkaTovara
+                            "Priemka_tovara_v_transportnykh_korobakh" -> result.priemkaTovaraVTransportnykhKorobakh
+                            "Priemka_tovara_palletnaya" -> result.priemkaTovaraPalletnaya
+                            "Prochie_raboty_vklyuchaya_ustranenie_anomalii" -> result.prochieRabotyVklyuchayaUstranenieAnomalii
+                            "Razbrakovka_tovara" -> result.razbrakovkaTovara
+                            "Sborka_naborov_ot_2_shtuk_raznykh_tovarov" -> result.sborkaNaborovOt2ShtukRaznykhTovarov
+                            "Upakovka_tovara_v_gofromeyler" -> result.upakovkaTovaraVGofromeyler
+                            "Khranenie_tovara" -> result.khranenieTovara
+
                             else -> null
                         }
                     }

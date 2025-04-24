@@ -2,62 +2,81 @@ package com.application.tm_application_for_tsd.utils
 
 object InfoForCheckBox {
     val infoBox: Array<String> = arrayOf(
-        "Оп 1 бл. 1 шт.",
-        "Оп 2 бл. 2 шт.",
-        "Оп 3 бл. 3 шт",
-        "Оп 4 бл. 4 шт.",
-        "Оп 5 бл. 5 шт.",
-        "Оп 6 блис.6-10 шт.",
-        "Оп 7 пересчет",
-        "Оп 9 фасовка/сборка",
-        "Оп 10 Маркировка ШТ",
-        "Оп 11 маркировка пром",
-        "Оп 13 маркировка фабр",
-        "Оп 14 ТУ 1 шт.",
-        "Оп 15 ТУ 2 шт.",
-        "Оп 16 ТУ 3-5",
-        "Оп 17 ТУ 6-8",
-        "Оп 468 проверка ШК",
-        "Оп 469 Спецификация ТМ",
-        "Оп 470 доп. упаковка",
-        "Сортируемый товар",  // Новая строка
-        "Не сортируемый товар",  // Новая строка
-        "Продукты",  // Новая строка
-        "Опасный товар",  // Новая строка
-        "Закрытая зона",  // Новая строка
-        "Крупногабаритный товар",  // Новая строка
-        "Ювелирные изделия",  // Новая строка
-        "Печать этикетки с ШК",  // Новая строка
-        "Печать этикетки с описанием",  // Новая строка
+        "Упаковка товара в индивидуальный короб",           // Op_1_Bl_1_Sht
+        "Пересчет товара",                                  // Op_2_Bl_2_Sht
+        "Фасовка/сборка монотовара в короб",                // Op_3_Bl_3_Sht
+        "Маркировка товара стикером",                       // Op_4_Bl_4_Sht
+        "Маркировка транспортного короба",                  // Op_5_Bl_5_Sht
+        "Маркировка паллета (транспортного модуля)",        // Op_6_Blis_6_10_Sht
+        "Удаление стикера/маркировки с товара",             // Op_7_Pereschyot
+        "Термоупаковка товара",                             // Op_9_Fasovka_Sborka
+        "Разбор товара (для маркетплейсов)",                // Op_10_Markirovka_SHT
+        "Спецификация ТМ (для маркетплейсов)",              // Pechat_Etiketki_s_Opisaniem
+        "Подготовка транспортного паллета к отгрузке",      // Op_11_Markirovka_Prom
+        "Раскомплект заказа (полный/частичный)",            // Op_13_Markirovka_Fabr
+        "Не сортируемый товар",                             // Op_15_TU_2_Sht
+        "Продукты",                                          // Op_16_TU_3_5
+        "Опасный товар",                                     // Op_17_TU_6_8
+        "Закрытая зона",                                     // Op_468_Proverka_SHK
+        "Проверка штрих-кода / срока годности",             // Pechat_Etiketki_s_SHK
+        "Крупногабаритный товар",                            // Krupnogabaritnyi_Tovar
+        "Ювелирные изделия",                                 // Yuvelirnye_Izdelia
+        "Упаковка в пакет с клеевым слоем",                  // Op_16_TU_3_5
+        "Упаковка в пакет с замком Zip Lock",                // Opasnyi_Tovar
+        "Упаковка в бабл - пленку",                          // Zakrytaya_Zona
+        "Товар 18+",                      // Krupnogabaritnyi_Tovar (повтор?)
+        "Сортировка товара по признаку",                       // Yuvelirnye_Izdelia (повтор?)
+        "Вложить в упаковку печатный материал",             // Vlozhit_v_upakovku_pechatnyi_material
+        "Измерение ВГХ и передача информации",              // Izmerenie_VGH_i_peredacha_informatsii
+        "Индекс за срочность (коэффициент 1,5)",            // Indeks_za_srochnost_koeff_1_5
+        "Комплексная приёмка товара",                       // Kompleksnaya_priemka_tovara
+        "Приемка товара в транспортных коробах",            // Priemka_tovara_v_transportnykh_korobakh
+        "Приемка товара паллетная",                         // Priemka_tovara_palletnaya
+        "Прочие работы (в т.ч. устранение аномалий)",       // Prochie_raboty_vklyuchaya_ustranenie_anomalii
+        "Разбраковка товара",                               // Razbrakovka_tovara
+        "Сборка наборов (комплектов) от 2-х штук разных товаров", // Sborka_naborov_ot_2_shtuk_raznykh_tovarov
+        "Упаковка товара в гофромейлер",                    // Upakovka_tovara_v_gofromeyler
+        "Хранение товара",                                   // Khranenie_tovara
+        "Упаковка товара в п/э пакет",                       // Yuvelirnye_Izdelia (повтор?)
+
     )
 
     val infoBoxToDB: Array<String> = arrayOf(
-        "Op_1_Bl_1_Sht",
-        "Op_2_Bl_2_Sht",
-        "Op_3_Bl_3_Sht",
-        "Op_4_Bl_4_Sht",
-        "Op_5_Bl_5_Sht",
-        "Op_6_Blis_6_10_Sht",
-        "Op_7_Pereschyot",
-        "Op_9_Fasovka_Sborka",
-        "Op_10_Markirovka_SHT",
-        "Op_11_Markirovka_Prom",
-        "Op_13_Markirovka_Fabr",
-        "Op_14_TU_1_Sht",
-        "Op_15_TU_2_Sht",
-        "Op_16_TU_3_5",
-        "Op_17_TU_6_8",
-        "Op_468_Proverka_SHK",
-        "Op_469_Spetsifikatsiya_TM",
-        "Op_470_Dop_Upakovka",
-        "Sortiruemyi_Tovar",  // Новая строка
-        "Ne_Sortiruemyi_Tovar",  // Новая строка
-        "Produkty",  // Новая строка
-        "Opasnyi_Tovar",  // Новая строка
-        "Zakrytaya_Zona",  // Новая строка
-        "Krupnogabaritnyi_Tovar",  // Новая строка
-        "Yuvelirnye_Izdelia",  // Новая строка
-        "Pechat_Etiketki_s_SHK",  // Новая строка
-        "Pechat_Etiketki_s_Opisaniem",  // Новая строка
+        "Op_1_Bl_1_Sht",                     // Упаковка товара в индивидуальный короб
+        "Op_2_Bl_2_Sht",                     // Пересчет товара
+        "Op_3_Bl_3_Sht",                     // Фасовка/сборка монотовара в короб
+        "Op_4_Bl_4_Sht",                     // Маркировка товара стикером
+        "Op_5_Bl_5_Sht",                     // Маркировка транспортного короба
+        "Op_6_Blis_6_10_Sht",                // Маркировка паллета (транспортного модуля)
+        "Op_7_Pereschyot",                   // Удаление стикера/маркировки с товара
+        "Op_9_Fasovka_Sborka",               // Термоупаковка товара
+        "Op_10_Markirovka_SHT",              // Разбор товара (для маркетплейсов)
+        "Op_469_Spetsifikatsiya_TM",         // Спецификация ТМ (для маркетплейсов)
+        "Op_11_Markirovka_Prom",             // Подготовка транспортного паллета к отгрузке
+        "Op_13_Markirovka_Fabr",             // Раскомплект заказа (полный/частичный)
+        "Ne_Sortiruemyi_Tovar",              // Не сортируемый товар
+        "Produkty",                          // Продукты
+        "Opasnyi_Tovar",                     // Опасный товар
+        "Zakrytaya_Zona",                    // Закрытая зона
+        "Op_470_Dop_Upakovka",               // Проверка штрих-кода / срока годности
+        "Krupnogabaritnyi_Tovar",            // Крупногабаритный товар
+        "Yuvelirnye_Izdelia",                // Ювелирные изделия
+        "Op_16_TU_3_5",                      // Упаковка в пакет с клеевым слоем
+        "Op_17_TU_6_8",                      // Упаковка в пакет с замком Zip Lock
+        "Op_468_Proverka_SHK",               // Упаковка в бабл - пленку
+        "Upakovka_v_Gofro",                  // Товар 18+
+        "PriznakSortirovki",                 // Сортировка товара по признаку
+        "Vlozhit_v_upakovku_pechatnyi_material", // Вложить в упаковку печатный материал
+        "Izmerenie_VGH_i_peredacha_informatsii", // Измерение ВГХ и передача информации
+        "Indeks_za_srochnost_koeff_1_5",     // Индекс за срочность (коэффициент 1,5)
+        "Kompleksnaya_priemka_tovara",       // Комплексная приёмка товара
+        "Priemka_tovara_v_transportnykh_korobakh", // Приемка товара в транспортных коробах
+        "Priemka_tovara_palletnaya",         // Приемка товара паллетная
+        "Prochie_raboty_vklyuchaya_ustranenie_anomalii", // Прочие работы (в т.ч. устранение аномалий)
+        "Razbrakovka_tovara",                // Разбраковка товара
+        "Sborka_naborov_ot_2_shtuk_raznykh_tovarov", // Сборка наборов (комплектов) от 2-х штук разных товаров
+        "Upakovka_tovara_v_gofromeyler",     // Упаковка товара в гофромейлер
+        "Khranenie_tovara",                  // Хранение товара
+        "Upakovka_v_PE_Paket"                // Упаковка товара в п/э пакет
     )
 }

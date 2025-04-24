@@ -8,12 +8,12 @@ plugins {
 }
 android {
     namespace = "com.application.tm_application_for_tsd"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.application.tm_application_for_tsd"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
