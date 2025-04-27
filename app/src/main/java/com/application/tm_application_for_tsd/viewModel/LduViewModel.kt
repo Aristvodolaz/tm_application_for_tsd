@@ -69,9 +69,6 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
                             "Vlozhit_v_upakovku_pechatnyi_material" -> result.vlozhitVUpakovkuPechatnyiMaterial
                             "Izmerenie_VGH_i_peredacha_informatsii" -> result.izmerenieVGHIPeredachaInformatsii
                             "Indeks_za_srochnost_koeff_1_5" -> result.indeksZaSrochnostKoeff15
-                            "Kompleksnaya_priemka_tovara" -> result.kompleksnayaPriemkaTovara
-                            "Priemka_tovara_v_transportnykh_korobakh" -> result.priemkaTovaraVTransportnykhKorobakh
-                            "Priemka_tovara_palletnaya" -> result.priemkaTovaraPalletnaya
                             "Prochie_raboty_vklyuchaya_ustranenie_anomalii" -> result.prochieRabotyVklyuchayaUstranenieAnomalii
                             "Razbrakovka_tovara" -> result.razbrakovkaTovara
                             "Sborka_naborov_ot_2_shtuk_raznykh_tovarov" -> result.sborkaNaborovOt2ShtukRaznykhTovarov

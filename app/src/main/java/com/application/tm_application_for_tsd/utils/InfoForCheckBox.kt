@@ -14,7 +14,7 @@ object InfoForCheckBox {
         "Спецификация ТМ (для маркетплейсов)",              // Pechat_Etiketki_s_Opisaniem
         "Подготовка транспортного паллета к отгрузке",      // Op_11_Markirovka_Prom
         "Раскомплект заказа (полный/частичный)",            // Op_13_Markirovka_Fabr
-        "Не сортируемый товар",                             // Op_15_TU_2_Sht
+        "Не сортируемый товар",
         "Продукты",                                          // Op_16_TU_3_5
         "Опасный товар",                                     // Op_17_TU_6_8
         "Закрытая зона",                                     // Op_468_Proverka_SHK
@@ -25,15 +25,12 @@ object InfoForCheckBox {
         "Упаковка в пакет с замком Zip Lock",                // Opasnyi_Tovar
         "Упаковка в бабл - пленку",                          // Zakrytaya_Zona
         "Товар 18+",                      // Krupnogabaritnyi_Tovar (повтор?)
-        "Сортировка товара по признаку",                       // Yuvelirnye_Izdelia (повтор?)
+        "Тип операции",                       // Yuvelirnye_Izdelia (повтор?)
         "Вложить в упаковку печатный материал",             // Vlozhit_v_upakovku_pechatnyi_material
         "Измерение ВГХ и передача информации",              // Izmerenie_VGH_i_peredacha_informatsii
         "Индекс за срочность (коэффициент 1,5)",            // Indeks_za_srochnost_koeff_1_5
-        "Комплексная приёмка товара",                       // Kompleksnaya_priemka_tovara
-        "Приемка товара в транспортных коробах",            // Priemka_tovara_v_transportnykh_korobakh
-        "Приемка товара паллетная",                         // Priemka_tovara_palletnaya
         "Прочие работы (в т.ч. устранение аномалий)",       // Prochie_raboty_vklyuchaya_ustranenie_anomalii
-        "Разбраковка товара",                               // Razbrakovka_tovara
+        "Сортируемый товар",                               // Razbrakovka_tovara
         "Сборка наборов (комплектов) от 2-х штук разных товаров", // Sborka_naborov_ot_2_shtuk_raznykh_tovarov
         "Упаковка товара в гофромейлер",                    // Upakovka_tovara_v_gofromeyler
         "Хранение товара",                                   // Khranenie_tovara
@@ -69,9 +66,6 @@ object InfoForCheckBox {
         "Vlozhit_v_upakovku_pechatnyi_material", // Вложить в упаковку печатный материал
         "Izmerenie_VGH_i_peredacha_informatsii", // Измерение ВГХ и передача информации
         "Indeks_za_srochnost_koeff_1_5",     // Индекс за срочность (коэффициент 1,5)
-        "Kompleksnaya_priemka_tovara",       // Комплексная приёмка товара
-        "Priemka_tovara_v_transportnykh_korobakh", // Приемка товара в транспортных коробах
-        "Priemka_tovara_palletnaya",         // Приемка товара паллетная
         "Prochie_raboty_vklyuchaya_ustranenie_anomalii", // Прочие работы (в т.ч. устранение аномалий)
         "Razbrakovka_tovara",                // Разбраковка товара
         "Sborka_naborov_ot_2_shtuk_raznykh_tovarov", // Сборка наборов (комплектов) от 2-х штук разных товаров
