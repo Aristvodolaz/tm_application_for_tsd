@@ -24,13 +24,12 @@ object InfoForCheckBox {
         "Упаковка в пакет с клеевым слоем",                  // Op_16_TU_3_5
         "Упаковка в пакет с замком Zip Lock",                // Opasnyi_Tovar
         "Упаковка в бабл - пленку",                          // Zakrytaya_Zona
-        "Товар 18+",                      // Krupnogabaritnyi_Tovar (повтор?)
-        "Тип операции",                       // Yuvelirnye_Izdelia (повтор?)
+        "Тип операции",
+        "Сортируемый товар",
         "Вложить в упаковку печатный материал",             // Vlozhit_v_upakovku_pechatnyi_material
         "Измерение ВГХ и передача информации",              // Izmerenie_VGH_i_peredacha_informatsii
         "Индекс за срочность (коэффициент 1,5)",            // Indeks_za_srochnost_koeff_1_5
         "Прочие работы (в т.ч. устранение аномалий)",       // Prochie_raboty_vklyuchaya_ustranenie_anomalii
-        "Сортируемый товар",                               // Razbrakovka_tovara
         "Сборка наборов (комплектов) от 2-х штук разных товаров", // Sborka_naborov_ot_2_shtuk_raznykh_tovarov
         "Упаковка товара в гофромейлер",                    // Upakovka_tovara_v_gofromeyler
         "Хранение товара",                                   // Khranenie_tovara
@@ -61,13 +60,12 @@ object InfoForCheckBox {
         "Op_16_TU_3_5",                      // Упаковка в пакет с клеевым слоем
         "Op_17_TU_6_8",                      // Упаковка в пакет с замком Zip Lock
         "Op_468_Proverka_SHK",               // Упаковка в бабл - пленку
-        "Upakovka_v_Gofro",                  // Товар 18+
+        "Upakovka_v_Gofro",
         "PriznakSortirovki",                 // Сортировка товара по признаку
         "Vlozhit_v_upakovku_pechatnyi_material", // Вложить в упаковку печатный материал
         "Izmerenie_VGH_i_peredacha_informatsii", // Измерение ВГХ и передача информации
         "Indeks_za_srochnost_koeff_1_5",     // Индекс за срочность (коэффициент 1,5)
         "Prochie_raboty_vklyuchaya_ustranenie_anomalii", // Прочие работы (в т.ч. устранение аномалий)
-        "Razbrakovka_tovara",                // Разбраковка товара
         "Sborka_naborov_ot_2_shtuk_raznykh_tovarov", // Сборка наборов (комплектов) от 2-х штук разных товаров
         "Upakovka_tovara_v_gofromeyler",     // Упаковка товара в гофромейлер
         "Khranenie_tovara",                  // Хранение товара
