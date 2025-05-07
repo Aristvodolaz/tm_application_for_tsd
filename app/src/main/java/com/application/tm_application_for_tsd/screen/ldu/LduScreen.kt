@@ -41,18 +41,18 @@ fun LduScreen(
                     is LduViewModel.UiState.Loading -> {
                         LoadingState(
                             modifier = Modifier
-                                .weight(1f) // Занимает доступное пространство
+                                .weight(1f)
                                 .fillMaxWidth()
                         )
                     }
                     is LduViewModel.UiState.Loaded -> {
                         val actions = (uiState as LduViewModel.UiState.Loaded).actions
-                            .filter { it.count.toInt() > 0 } // Отображаем только элементы с ненулевым количеством
+                            .filter { it.count.toIntOrNull() ?: 0 > 0 || it.isStringValue } // Отображаем элементы с ненулевым количеством или строковые значения
 
                         if (actions.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier
-                                    .weight(1f) // Занимает оставшееся пространство
+                                    .weight(1f)
                                     .fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 contentPadding = PaddingValues(8.dp)
@@ -60,15 +60,15 @@ fun LduScreen(
                                 items(actions) { action ->
                                     DisplayActionItem(
                                         actionName = action.name,
-                                        count = action.count.toInt()
+                                        count = action.count,
+                                        isStringValue = action.isStringValue
                                     )
                                 }
                             }
                         } else {
-                            // Если действий нет, показываем сообщение
                             EmptyStateMessage(
                                 modifier = Modifier
-                                    .weight(1f) // Занимает оставшееся пространство
+                                    .weight(1f)
                                     .fillMaxWidth()
                             )
                         }
@@ -82,7 +82,6 @@ fun LduScreen(
                     }
                 }
 
-                // Кнопка для перехода на следующий экран
                 Button(
                     onClick = toNextScreen,
                     modifier = Modifier
@@ -115,7 +114,7 @@ fun LduTopBar() {
 }
 
 @Composable
-fun DisplayActionItem(actionName: String, count: Int) {
+fun DisplayActionItem(actionName: String, count: String, isStringValue: Boolean = false) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,27 +128,28 @@ fun DisplayActionItem(actionName: String, count: Int) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = actionName,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
             )
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = count.toString(),
-                fontSize = 14.sp,
+                text = count,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 8.dp)
             )
         }
     }
 }
-
-
 
 @Composable
 fun LoadingState(modifier: Modifier = Modifier) {

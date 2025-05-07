@@ -11,7 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ActionItem(val name: String, var count: String)
+data class ActionItem(
+    val name: String, 
+    var count: String,
+    val isStringValue: Boolean = false // добавляем флаг для определения типа отображения
+)
 
 @HiltViewModel
 class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel() {
@@ -74,13 +78,24 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
                             "Sborka_naborov_ot_2_shtuk_raznykh_tovarov" -> result.sborkaNaborovOt2ShtukRaznykhTovarov
                             "Upakovka_tovara_v_gofromeyler" -> result.upakovkaTovaraVGofromeyler
                             "Khranenie_tovara" -> result.khranenieTovara
-
                             else -> null
                         }
                     }
-                    ActionItem(name, if (value == "V") "1" else {
-                        value?.toString() ?: "0"
-                    })
+
+                    when {
+                        dbField == "Upakovka_v_Gofro" -> {
+                            ActionItem(name, value?.toString() ?: "", isStringValue = true)
+                        }
+                        value == "V" -> {
+                            ActionItem(name, "1")
+                        }
+                        value == null -> {
+                            ActionItem(name, "0")
+                        }
+                        else -> {
+                            ActionItem(name, value.toString())
+                        }
+                    }
                 }
 
                 _uiState.value = UiState.Loaded(actions)
@@ -95,9 +110,11 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
         if (_uiState.value is UiState.Loaded) {
             val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
             val currentAction = actions[index]
-            val currentValue = currentAction.count.toIntOrNull() ?: 0
-            actions[index] = currentAction.copy(count = (currentValue + 1).toString())
-            _uiState.value = UiState.Loaded(actions)
+            if (!currentAction.isStringValue) {
+                val currentValue = currentAction.count.toIntOrNull() ?: 0
+                actions[index] = currentAction.copy(count = (currentValue + 1).toString())
+                _uiState.value = UiState.Loaded(actions)
+            }
         }
     }
 
@@ -105,10 +122,12 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
         if (_uiState.value is UiState.Loaded) {
             val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
             val currentAction = actions[index]
-            val currentValue = currentAction.count.toIntOrNull() ?: 0
-            if (currentValue > 0) {
-                actions[index] = currentAction.copy(count = (currentValue - 1).toString())
-                _uiState.value = UiState.Loaded(actions)
+            if (!currentAction.isStringValue) {
+                val currentValue = currentAction.count.toIntOrNull() ?: 0
+                if (currentValue > 0) {
+                    actions[index] = currentAction.copy(count = (currentValue - 1).toString())
+                    _uiState.value = UiState.Loaded(actions)
+                }
             }
         }
     }
@@ -150,3 +169,4 @@ class LduViewModel @Inject constructor(private val apiService: Api) : ViewModel(
         }
     }
 }
+

@@ -46,9 +46,10 @@ fun AddLduScreen(
                         items(uiState.actions.size) { index ->
                             ActionItem(
                                 actionName = uiState.actions[index].name,
-                                count = uiState.actions[index].count.toInt(),
+                                count = uiState.actions[index].count,
                                 onIncrement = { viewModel.incrementAction(index) },
-                                onDecrement = { viewModel.decrementAction(index) }
+                                onDecrement = { viewModel.decrementAction(index) },
+                                isStringValue = uiState.actions[index].isStringValue
                             )
                         }
                     }
@@ -59,7 +60,7 @@ fun AddLduScreen(
         bottomBar = {
             if (uiState is LduViewModel.UiState.Loaded) {
                 AddLduBottomBar {
-                    viewModel.saveActions (id) { onSaveSuccess() }
+                    viewModel.saveActions(id) { onSaveSuccess() }
                 }
             }
         }
@@ -91,7 +92,7 @@ fun AddLduBottomBar(onSaveClick: () -> Unit) {
 }
 
 @Composable
-fun ActionItem(actionName: String, count: Int, onIncrement: () -> Unit, onDecrement: () -> Unit) {
+fun ActionItem(actionName: String, count: String, onIncrement: () -> Unit, onDecrement: () -> Unit, isStringValue: Boolean = false) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,28 +110,38 @@ fun ActionItem(actionName: String, count: Int, onIncrement: () -> Unit, onDecrem
             Text(
                 text = actionName,
                 fontSize = 14.sp,
-                modifier = Modifier.weight(1f) // Занимает все свободное пространство
+                modifier = Modifier.weight(1f)
             )
 
-            // Управляющие кнопки справа
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Button(
-                    onClick = onDecrement,
-                    enabled = count > 0
+            if (!isStringValue) {
+                // Управляющие кнопки справа для числовых значений
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Text("-")
+                    Button(
+                        onClick = onDecrement,
+                        enabled = count.toIntOrNull() ?: 0 > 0
+                    ) {
+                        Text("-")
+                    }
+                    Text(
+                        text = count,
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    )
+                    Button(onClick = onIncrement) {
+                        Text("+")
+                    }
                 }
+            } else {
+                // Просто текст для строковых значений
                 Text(
-                    text = count.toString(),
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(horizontal = 6.dp)
+                    text = count,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                Button(onClick = onIncrement) {
-                    Text("+")
-                }
             }
         }
     }

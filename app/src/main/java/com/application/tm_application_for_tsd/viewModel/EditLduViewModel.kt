@@ -74,20 +74,22 @@ class EditLduViewModel @Inject constructor(
                             "Sborka_naborov_ot_2_shtuk_raznykh_tovarov" -> result.sborkaNaborovOt2ShtukRaznykhTovarov
                             "Upakovka_tovara_v_gofromeyler" -> result.upakovkaTovaraVGofromeyler
                             "Khranenie_tovara" -> result.khranenieTovara
-
                             else -> null
                         }
                     }
-                    when (value) {
-                        "V" -> {
+
+                    when {
+                        dbField == "Upakovka_v_Gofro" -> {
+                            ActionItem(name, value?.toString() ?: "", isStringValue = true)
+                        }
+                        value == "V" -> {
                             ActionItem(name, "1")
                         }
-                        null -> {
+                        value == null -> {
                             ActionItem(name, "0")
-
                         }
                         else -> {
-                            ActionItem(name,value.toString())
+                            ActionItem(name, value.toString())
                         }
                     }
                 }
@@ -99,14 +101,15 @@ class EditLduViewModel @Inject constructor(
         }
     }
 
-
     fun incrementAction(index: Int) {
         if (_uiState.value is UiState.Loaded) {
             val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
             val currentAction = actions[index]
-            val currentValue = currentAction.count.toIntOrNull() ?: 0
-            actions[index] = currentAction.copy(count = (currentValue + 1).toString())
-            _uiState.value = UiState.Loaded(actions)
+            if (!currentAction.isStringValue) {
+                val currentValue = currentAction.count.toIntOrNull() ?: 0
+                actions[index] = currentAction.copy(count = (currentValue + 1).toString())
+                _uiState.value = UiState.Loaded(actions)
+            }
         }
     }
 
@@ -114,10 +117,12 @@ class EditLduViewModel @Inject constructor(
         if (_uiState.value is UiState.Loaded) {
             val actions = (_uiState.value as UiState.Loaded).actions.toMutableList()
             val currentAction = actions[index]
-            val currentValue = currentAction.count.toIntOrNull() ?: 0
-            if (currentValue > 0) {
-                actions[index] = currentAction.copy(count = (currentValue - 1).toString())
-                _uiState.value = UiState.Loaded(actions)
+            if (!currentAction.isStringValue) {
+                val currentValue = currentAction.count.toIntOrNull() ?: 0
+                if (currentValue > 0) {
+                    actions[index] = currentAction.copy(count = (currentValue - 1).toString())
+                    _uiState.value = UiState.Loaded(actions)
+                }
             }
         }
     }
